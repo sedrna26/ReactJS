@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { fetchProducts, fetchCategories, fetchProductsByCategory } from '../services/api';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
@@ -157,31 +158,45 @@ const ProductList = ({ onAddToCart }) => {
         <div className="products-grid">
           {sortedProducts.map(product => (
             <div key={product.id} className="product-card">
-              <div className="product-image-container">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="product-image"
-                />
-                {product.rating && (
-                  <div className="product-rating">
-                    ⭐ {product.rating.rate.toFixed(1)}
-                  </div>
-                )}
-              </div>
-              <div className="product-info">
-                <span className="product-category">{product.category}</span>
-                <h3 className="product-name">{product.name}</h3>
-                <p className="product-description">
-                  {product.description.length > 100
-                    ? `${product.description.substring(0, 100)}...`
-                    : product.description
-                  }
-                </p>
-                <div className="product-footer">
-                  <span className="product-price">${product.price.toFixed(2)}</span>
+              <Link to={`/products/${product.id}`} className="product-link">
+                <div className="product-image-container">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="product-image"
+                  />
+                  {product.rating && (
+                    <div className="product-rating">
+                      ⭐ {product.rating.rate.toFixed(1)}
+                    </div>
+                  )}
+                </div>
+                <div className="product-info">
+                  <span className="product-category">{product.category}</span>
+                  <h3 className="product-name">{product.name}</h3>
+                  <p className="product-description">
+                    {product.description.length > 100
+                      ? `${product.description.substring(0, 100)}...`
+                      : product.description
+                    }
+                  </p>
+                </div>
+              </Link>
+              <div className="product-footer">
+                <span className="product-price">${product.price.toFixed(2)}</span>
+                <div className="product-actions">
+                  <Link 
+                    to={`/products/${product.id}`} 
+                    className="view-details-btn"
+                  >
+                    Ver Detalles
+                  </Link>
                   <button
-                    onClick={() => onAddToCart(product)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onAddToCart(product);
+                    }}
                     className="add-to-cart-btn"
                   >
                     Agregar al Carrito

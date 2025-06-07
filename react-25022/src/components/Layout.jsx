@@ -1,27 +1,32 @@
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
-const Layout = ({ children, cartItemsCount, currentView, onViewChange }) => {
+const Layout = ({ children, cartItemsCount }) => {
+    const location = useLocation();
+    
     return (
         <div className="layout">
             <header className="header">
                 <div className="header-content">
-                    <h1 className="logo">🛒 Mi Tienda Online</h1>
+                    <Link to="/" className="logo-link">
+                        <h1 className="logo">🛒 Mi Tienda Online</h1>
+                    </Link>
                     <nav className="navigation">
-                        <button
-                            className={`nav-btn ${currentView === 'products' ? 'active' : ''}`}
-                            onClick={() => onViewChange('products')}
+                        <Link
+                            to="/products"
+                            className={`nav-btn ${location.pathname === '/products' || location.pathname === '/' ? 'active' : ''}`}
                         >
                             Productos
-                        </button>
-                        <button
-                            className={`nav-btn cart-btn ${currentView === 'cart' ? 'active' : ''}`}
-                            onClick={() => onViewChange('cart')}
+                        </Link>
+                        <Link
+                            to="/cart"
+                            className={`nav-btn cart-btn ${location.pathname === '/cart' ? 'active' : ''}`}
                         >
                             Carrito
                             {cartItemsCount > 0 && (
                                 <span className="cart-badge">{cartItemsCount}</span>
                             )}
-                        </button>
+                        </Link>
                     </nav>
                 </div>
             </header>

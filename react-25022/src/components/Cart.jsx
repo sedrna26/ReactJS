@@ -1,4 +1,6 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import './Cart.css';
 
 const Cart = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
     const totalPrice = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -10,6 +12,9 @@ const Cart = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
                 <div className="empty-cart">
                     <p>Tu carrito está vacío</p>
                     <p>¡Agrega algunos productos!</p>
+                    <Link to="/products" className="continue-shopping-btn">
+                        Continuar Comprando
+                    </Link>
                 </div>
             </div>
         );
@@ -21,14 +26,18 @@ const Cart = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
             <div className="cart-items">
                 {cartItems.map(item => (
                     <div key={item.id} className="cart-item">
-                        <img
-                            src={item.image}
-                            alt={item.name}
-                            className="cart-item-image"
-                        />
+                        <Link to={`/products/${item.id}`} className="cart-item-link">
+                            <img
+                                src={item.image}
+                                alt={item.name}
+                                className="cart-item-image"
+                            />
+                        </Link>
                         <div className="cart-item-info">
-                            <h4 className="cart-item-name">{item.name}</h4>
-                            <p className="cart-item-price">${item.price}</p>
+                            <Link to={`/products/${item.id}`} className="cart-item-name-link">
+                                <h4 className="cart-item-name">{item.name}</h4>
+                            </Link>
+                            <p className="cart-item-price">${item.price.toFixed(2)}</p>
                         </div>
                         <div className="cart-item-controls">
                             <div className="quantity-controls">
@@ -62,9 +71,14 @@ const Cart = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
             </div>
             <div className="cart-total">
                 <h3>Total: ${totalPrice.toFixed(2)}</h3>
-                <button className="checkout-btn">
-                    Proceder al Pago
-                </button>
+                <div className="cart-actions">
+                    <Link to="/products" className="continue-shopping-btn">
+                        Continuar Comprando
+                    </Link>
+                    <button className="checkout-btn">
+                        Proceder al Pago
+                    </button>
+                </div>
             </div>
         </div>
     );

@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import ProductList from './components/ProductList';
+import ProductDetail from './components/ProductDetail';
 import Cart from './components/Cart';
+import ErrorMessage from './components/ErrorMessage';
 import './App.css';
 
 function App() {
   // Estado para manejar el carrito de compras
   const [cartItems, setCartItems] = useState([]);
-
-  // Estado para manejar la vista actual (productos o carrito)
-  const [currentView, setCurrentView] = useState('products');
 
   // Función para agregar productos al carrito
   const addToCart = (product) => {
@@ -57,30 +57,42 @@ function App() {
     );
   };
 
-  // Función para cambiar de vista
-  const handleViewChange = (view) => {
-    setCurrentView(view);
-  };
-
   // Calcular el número total de items en el carrito
   const totalItemsInCart = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   return (
-    <Layout
-      cartItemsCount={totalItemsInCart}
-      currentView={currentView}
-      onViewChange={handleViewChange}
-    >
-      {currentView === 'products' ? (
-        <ProductList onAddToCart={addToCart} />
-      ) : (
-        <Cart
-          cartItems={cartItems}
-          onRemoveFromCart={removeFromCart}
-          onUpdateQuantity={updateQuantity}
-        />
-      )}
-    </Layout>
+    <Router>
+      <Layout cartItemsCount={totalItemsInCart}>
+        <Routes>
+          <Route 
+            path="/" 
+            element={<ProductList onAddToCart={addToCart} />} 
+          />
+          <Route 
+            path="/products" 
+            element={<ProductList onAddToCart={addToCart} />} 
+          />
+          <Route 
+            path="/products/:id" 
+            element={<ProductDetail onAddToCart={addToCart} />} 
+          />
+          <Route 
+            path="/cart" 
+            element={
+              <Cart
+                cartItems={cartItems}
+                onRemoveFromCart={removeFromCart}
+                onUpdateQuantity={updateQuantity}
+              />
+            } 
+          />
+          <Route 
+            path="*" 
+            element={<ErrorMessage message="Página no encontrada" />} 
+          />
+        </Routes>
+      </Layout>
+    </Router>
   );
 }
 
