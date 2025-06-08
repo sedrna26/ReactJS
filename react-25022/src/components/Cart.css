@@ -214,7 +214,6 @@
     background-color: #219a52;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     .cart {
         padding: 10px;

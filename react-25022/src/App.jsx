@@ -1,11 +1,24 @@
+
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+// Componentes
 import Layout from './components/Layout';
 import ProductList from './components/ProductList';
 import ProductDetail from './components/ProductDetail';
 import Cart from './components/Cart';
 import ErrorMessage from './components/ErrorMessage';
+import Login from './components/Login';
+import Register from './components/Register';
+import ProtectedRoute from './components/ProtectedRoute';
+import Profile from './components/Profile'; 
+import OrderHistory from './components/OrderHistory'; 
+import AdminDashboard from './components/AdminDashboard'; 
+
+// Contexto y CSS
+import { AuthProvider } from './components/AuthContext';
 import './App.css';
+
 
 function App() {
   // Estado para manejar el carrito de compras
@@ -31,7 +44,7 @@ function App() {
     });
 
     // Mostrar una notificación (opcional)
-    alert(`${product.name} agregado al carrito!`);
+    console.log(`${product.name} agregado al carrito!`);
   };
 
   // Función para eliminar productos del carrito
@@ -57,42 +70,112 @@ function App() {
     );
   };
 
+  // Función para procesar checkout
+  const processCheckout = () => {
+    if (cartItems.length === 0) {
+      alert('El carrito está vacío');
+      return;
+    }
+
+    // Simular procesamiento de orden
+    const order = {
+      id: Date.now(),
+      items: [...cartItems],
+      total: cartItems.reduce((total, item) => total + (item.price * item.quantity), 0),
+      date: new Date().toISOString(),
+      status: 'completed'
+    };
+
+    // Guardar orden en localStorage (simulando base de datos)
+    const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+    existingOrders.push(order);
+    localStorage.setItem('orders', JSON.stringify(existingOrders));
+
+    // Limpiar carrito
+    setCartItems([]);
+    alert('¡Compra realizada con éxito!');
+  };
+
   // Calcular el número total de items en el carrito
   const totalItemsInCart = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   return (
-    <Router>
-      <Layout cartItemsCount={totalItemsInCart}>
-        <Routes>
-          <Route 
-            path="/" 
-            element={<ProductList onAddToCart={addToCart} />} 
-          />
-          <Route 
-            path="/products" 
-            element={<ProductList onAddToCart={addToCart} />} 
-          />
-          <Route 
-            path="/products/:id" 
-            element={<ProductDetail onAddToCart={addToCart} />} 
-          />
-          <Route 
-            path="/cart" 
-            element={
-              <Cart
-                cartItems={cartItems}
-                onRemoveFromCart={removeFromCart}
-                onUpdateQuantity={updateQuantity}
-              />
-            } 
-          />
-          <Route 
-            path="*" 
-            element={<ErrorMessage message="Página no encontrada" />} 
-          />
-        </Routes>
-      </Layout>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Layout cartItemsCount={totalItemsInCart}>
+          <Routes>
+            {/* Rutas públicas */}
+            <Route 
+              path="/" 
+              element={<ProductList onAddToCart={addToCart} />} 
+            />
+            <Route 
+              path="/products" 
+              element={<ProductList onAddToCart={addToCart} />} 
+            />
+            <Route 
+              path="/products/:id" 
+              element={<ProductDetail onAddToCart={addToCart} />} 
+            />
+            <Route 
+              path="/login" 
+              element={<Login />} 
+            />
+            <Route 
+              path="/register" 
+              element={<Register />} 
+            />
+
+            {/* Rutas protegidas - requieren autenticación */}
+            <Route 
+              path="/cart" 
+              element={
+                <ProtectedRoute>
+                  <Cart
+                    cartItems={cartItems}
+                    onRemoveFromCart={removeFromCart}
+                    onUpdateQuantity={updateQuantity}
+                    onCheckout={processCheckout}
+                  />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/orders" 
+              element={
+                <ProtectedRoute>
+                  <OrderHistory />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Rutas protegidas - solo para administradores */}
+            <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Ruta 404 */}
+            <Route 
+              path="*" 
+              element={<ErrorMessage message="Página no encontrada" />} 
+            />
+          </Routes>
+        </Layout>
+      </Router>
+    </AuthProvider>
   );
 }
 

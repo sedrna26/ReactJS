@@ -1,8 +1,11 @@
+
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './Cart.css';
 
-const Cart = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
+
+const Cart = ({ cartItems, onRemoveFromCart, onUpdateQuantity, onCheckout }) => {
     const totalPrice = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
 
     if (cartItems.length === 0) {
@@ -24,6 +27,7 @@ const Cart = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
         <div className="cart">
             <h2>Carrito de Compras ({cartItems.length} productos)</h2>
             <div className="cart-items">
+               
                 {cartItems.map(item => (
                     <div key={item.id} className="cart-item">
                         <Link to={`/products/${item.id}`} className="cart-item-link">
@@ -75,7 +79,8 @@ const Cart = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
                     <Link to="/products" className="continue-shopping-btn">
                         Continuar Comprando
                     </Link>
-                    <button className="checkout-btn">
+                    
+                    <button className="checkout-btn" onClick={onCheckout}>
                         Proceder al Pago
                     </button>
                 </div>
