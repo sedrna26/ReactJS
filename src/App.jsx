@@ -104,7 +104,7 @@ function App() {
       <Router>
         <Layout cartItemsCount={totalItemsInCart}>
           <Routes>
-            {/* Rutas públicas */}
+          
             <Route 
               path="/" 
               element={<ProductList onAddToCart={addToCart} />} 
@@ -126,7 +126,7 @@ function App() {
               element={<Register />} 
             />
 
-            {/* Rutas protegidas - requieren autenticación */}
+           
             <Route 
               path="/cart" 
               element={
@@ -157,7 +157,7 @@ function App() {
               } 
             />
 
-            {/* Rutas protegidas - solo para administradores */}
+            
             <Route 
               path="/admin" 
               element={
@@ -167,7 +167,7 @@ function App() {
               } 
             />
 
-            {/* Ruta 404 */}
+       
             <Route 
               path="*" 
               element={<ErrorMessage message="Página no encontrada" />} 
