@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-// Componentes
+
 import Layout from './components/Layout';
 import ProductList from './components/ProductList';
 import ProductDetail from './components/ProductDetail';
@@ -15,7 +15,7 @@ import Profile from './components/Profile';
 import OrderHistory from './components/OrderHistory'; 
 import AdminDashboard from './components/AdminDashboard'; 
 
-// Contexto y CSS
+
 import { AuthProvider } from './components/AuthContext';
 import './App.css';
 
@@ -24,14 +24,14 @@ function App() {
   // Estado para manejar el carrito de compras
   const [cartItems, setCartItems] = useState([]);
 
-  // Función para agregar productos al carrito
+  //función para agregar productos al carrito
   const addToCart = (product) => {
     setCartItems(prevItems => {
       // Verificar si el producto ya existe en el carrito
       const existingItem = prevItems.find(item => item.id === product.id);
 
       if (existingItem) {
-        // Si existe, incrementar la cantidad
+        //Si existe, incrementar la cantidad
         return prevItems.map(item =>
           item.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
@@ -54,7 +54,7 @@ function App() {
     );
   };
 
-  // Función para actualizar la cantidad de un producto
+  //función para actualizar la cantidad de un producto
   const updateQuantity = (productId, newQuantity) => {
     if (newQuantity <= 0) {
       removeFromCart(productId);
