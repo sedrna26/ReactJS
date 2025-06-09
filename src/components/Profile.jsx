@@ -1,8 +1,7 @@
-// Archivo: src/components/Profile.jsx
 
 import React from 'react';
-import { useAuth } from './AuthContext'; // Importamos el contexto para acceder a los datos del usuario
-import './Profile.css'; // Crearemos este archivo para los estilos
+import { useAuth } from './AuthContext';
+import './Profile.css'; 
 
 const Profile = () => {
   const { user } = useAuth();
