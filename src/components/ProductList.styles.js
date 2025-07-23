@@ -1,5 +1,28 @@
-import styled from 'styled-components';
+import styled, { css, keyframes } from 'styled-components';
 import { Link } from 'react-router-dom';
+
+// Animaciones
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+`;
+
+// Mixin para estilos de botones
+const buttonStyles = css`
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.85em;
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.3s ease;
+`;
 
 export const ProductListContainer = styled.div`
   padding: 20px;
@@ -77,7 +100,6 @@ export const StyledSelect = styled.select`
   background: white;
   cursor: pointer;
   transition: border-color 0.3s ease;
-  width: 100%; /* Asegura que ocupe todo el ancho disponible */
 
   &:focus {
     outline: none;
@@ -114,16 +136,6 @@ export const ProductsGrid = styled.div`
   }
 `;
 
-export const ProductImage = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-
-
-`;
-
-
 export const ProductCard = styled.div`
   border: 1px solid #ddd;
   border-radius: 12px;
@@ -134,16 +146,11 @@ export const ProductCard = styled.div`
   position: relative;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  animation: ${fadeIn} 0.5s ease-out; /* Animación de entrada */
 
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  }
-
-  
-  &:hover ${ProductImage} { 
-    transform: scale(1.05);
   }
 `;
 
@@ -151,19 +158,25 @@ export const ProductLink = styled(Link)`
   text-decoration: none;
   color: inherit;
   display: block;
-  flex: 1; /* Permite que el link ocupe el espacio disponible */
+  flex: 1;
 `;
 
 export const ProductImageContainer = styled.div`
-  width: 100%;
- 
+  position: relative;
+  height: 250px;
   overflow: hidden;
-  border-bottom: 1px solid #eee;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 `;
 
+export const ProductImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+
+  ${ProductCard}:hover & { /* Aplica la transformación cuando el ProductCard es hover */
+    transform: scale(1.05);
+  }
+`;
 
 export const ProductRating = styled.div`
   position: absolute;
@@ -246,20 +259,8 @@ export const ProductActions = styled.div`
   }
 `;
 
-export const StyledButton = styled.button`
-  border: none;
-  padding: 8px 16px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 0.85em;
-  text-decoration: none;
-  text-align: center;
-  transition: all 0.3s ease;
-`;
-
 export const ViewDetailsButton = styled(Link)`
-  ${StyledButton}; /* Herencia de estilos base */
+  ${buttonStyles}
   background: #6c757d;
   color: white;
   box-shadow: 0 2px 6px rgba(108, 117, 125, 0.3);
@@ -272,7 +273,7 @@ export const ViewDetailsButton = styled(Link)`
 `;
 
 export const AddToCartButton = styled.button`
-  ${StyledButton}; /* Herencia de estilos base */
+  ${buttonStyles}
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);

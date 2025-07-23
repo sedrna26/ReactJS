@@ -1,3 +1,4 @@
+// src/components/ProductList.jsx
 import React, { useState, useEffect } from 'react';
 import { fetchCategories } from '../services/api';
 import LoadingSpinner from './LoadingSpinner';
@@ -30,7 +31,7 @@ import {
   ProductActions,
   ViewDetailsButton,
   AddToCartButton,
-} from './ProductList.styles';
+} from './ProductList.styles'; // Asegúrate de importar todos los componentes estilizados
 
 const ProductList = ({ onAddToCart }) => {
   const { products: contextProducts, loading: contextLoading, error: contextError, fetchProducts: refetchAllProducts } = useProducts();
@@ -43,6 +44,11 @@ const ProductList = ({ onAddToCart }) => {
   useEffect(() => {
     const loadCategories = async () => {
       try {
+        // En lugar de fetchCategories(), usa las categorías del contexto si ya las tienes disponibles
+        // Si ProductContext ya carga las categorías, puedes obtenerlas de allí:
+        // const { categories: contextCategories } = useProducts();
+        // setCategories(contextCategories);
+        // O si quieres mantener la carga separada, asegúrate de que api.fetchCategories funcione:
         const categoriesData = await fetchCategories();
         setCategories(categoriesData);
       } catch (err) {
@@ -64,113 +70,94 @@ const ProductList = ({ onAddToCart }) => {
   });
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
-    switch (sortBy) {
-      case 'name':
-        return a.name.localeCompare(b.name);
-      case 'price-low':
-        return a.price - b.price;
-      case 'price-high':
-        return b.price - a.price;
-      case 'rating':
-        return (b.rating?.rate || 0) - (a.rating?.rate || 0);
-      default:
-        return 0;
+    if (sortBy === 'name') {
+      return a.name.localeCompare(b.name);
     }
+    if (sortBy === 'priceAsc') {
+      return a.price - b.price;
+    }
+    if (sortBy === 'priceDesc') {
+      return b.price - a.price;
+    }
+    return 0;
   });
 
-  if (contextLoading) {
-    return <LoadingSpinner message="Cargando productos..." />;
-  }
-
-  if (contextError) {
-    return (
-      <ErrorMessage
-        message={contextError}
-        onRetry={handleRetry}
-      />
-    );
-  }
-
   return (
-    <ProductListContainer className="container-fluid">
+    <ProductListContainer> {/* Usar componente estilizado */}
       <Helmet>
-        <title>Productos - Mi Tienda Online</title>
-        <meta name="description" content="Explora nuestra amplia selección de productos de alta calidad en Mi Tienda Online. Encuentra ofertas, productos nuevos y más." />
-        <meta name="keywords" content="productos, tienda online, e-commerce, ofertas, compras, calidad" />
-        <link rel="canonical" href="http://www.mitiendaonline.com/products" />
+        <title>Lista de Productos - E-commerce</title>
+        <meta name="description" content="Explora nuestra amplia selección de productos y encuentra lo que necesitas." />
       </Helmet>
 
-      <ProductListHeader>
-        <h2>Productos Disponibles ({sortedProducts.length})</h2>
-
-        <FiltersContainer className="row mb-3">
-          <SearchContainer className="col-md-4 col-sm-12 mb-2">
+      <ProductListHeader> {/* Usar componente estilizado */}
+        <h2>Nuestros Productos</h2>
+        <FiltersContainer> {/* Usar componente estilizado */}
+          <SearchContainer> {/* Usar componente estilizado */}
             <SearchInput
               type="text"
               placeholder="Buscar productos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              aria-label="Buscar productos por nombre o descripción"
+              aria-label="Buscar productos"
             />
-            <SearchIcon aria-hidden="true">🔍</SearchIcon>
+            <SearchIcon> {/* Usar componente estilizado */}
+              <i className="fas fa-search"></i> {/* Asegúrate de que Font Awesome esté configurado si usas esta clase */}
+            </SearchIcon>
           </SearchContainer>
 
-          <div className="col-md-4 col-sm-6 mb-2">
-            <StyledSelect
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              aria-label="Filtrar productos por categoría"
-            >
-              <option value="all">Todas las categorías</option>
-              {categories.map(category => (
-                <option key={category} value={category}>
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
-                </option>
-              ))}
-            </StyledSelect>
-          </div>
+          <StyledSelect
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            aria-label="Filtrar por categoría"
+          >
+            <option value="all">Todas las categorías</option>
+            {categories.map(category => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </StyledSelect>
 
-          <div className="col-md-4 col-sm-6 mb-2">
-            <StyledSelect
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              aria-label="Ordenar productos por"
-            >
-              <option value="name">Ordenar por nombre</option>
-              <option value="price-low">Precio: menor a mayor</option>
-              <option value="price-high">Precio: mayor a menor</option>
-              <option value="rating">Mejor valorado</option>
-            </StyledSelect>
-          </div>
+          <StyledSelect
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            aria-label="Ordenar productos por"
+          >
+            <option value="name">Ordenar por Nombre</option>
+            <option value="priceAsc">Precio: Menor a Mayor</option>
+            <option value="priceDesc">Precio: Mayor a Menor</option>
+          </StyledSelect>
         </FiltersContainer>
       </ProductListHeader>
 
-      {sortedProducts.length === 0 ? (
-        <NoProductsMessage className="text-center py-5">
-          <h3>No se encontraron productos</h3>
-          <p>Intenta con otros términos de búsqueda o cambia la categoría.</p>
+      {contextLoading && <LoadingSpinner />}
+      {contextError && <ErrorMessage message={contextError} onRetry={handleRetry} />}
+
+      {!contextLoading && !contextError && sortedProducts.length === 0 && (
+        <NoProductsMessage> {/* Usar componente estilizado */}
+          <h3>No se encontraron productos.</h3>
+          <p>Intenta ajustar tus filtros de búsqueda o categoría.</p>
         </NoProductsMessage>
-      ) : (
-        <ProductsGrid className="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
-          {sortedProducts.map(product => (
-            <div key={product.id} className="col">
-              <ProductCard className="h-100 shadow-sm">
-                <ProductLink to={`/products/${product.id}`} aria-label={`Ver detalles de ${product.name}`}>
-                  <ProductImageContainer>
+      )}
+
+      {!contextLoading && !contextError && sortedProducts.length > 0 && (
+        <ProductsGrid> {/* Usar componente estilizado */}
+          {sortedProducts.map((product) => (
+            <div className="col-md-4 mb-4" key={product.id}> {/* Clase de Bootstrap */}
+              <ProductCard> {/* Usar componente estilizado */}
+                <ProductLink to={`/products/${product.id}`}>
+                  <ProductImageContainer> {/* Usar componente estilizado */}
                     <ProductImage
                       src={product.image}
                       alt={product.name}
+                      onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-image.jpg'; }}
                     />
                     {product.rating && (
-                      <ProductRating>
-                        ⭐ {product.rating.rate.toFixed(1)}
-                      </ProductRating>
+                      <ProductRating>{product.rating.toFixed(1)} ★</ProductRating>
                     )}
                   </ProductImageContainer>
-                  <ProductInfo>
-                    <ProductCategoryBadge className="bg-secondary text-white mb-2">{product.category}</ProductCategoryBadge> {/* Mantén clases de Bootstrap */}
-                    <ProductName>{product.name}</ProductName>
-                    <ProductDescription>
+                  <ProductInfo> {/* Usar componente estilizado */}
+                    <ProductCategoryBadge>{product.category}</ProductCategoryBadge> {/* Usar componente estilizado */}
+                    <ProductName>{product.name}</ProductName> {/* Usar componente estilizado */}
+                    <ProductDescription> {/* Usar componente estilizado */}
                       {product.description.length > 100
                         ? `${product.description.substring(0, 100)}...`
                         : product.description
@@ -178,9 +165,9 @@ const ProductList = ({ onAddToCart }) => {
                     </ProductDescription>
                   </ProductInfo>
                 </ProductLink>
-                <ProductFooter>
-                  <ProductPrice>${product.price.toFixed(2)}</ProductPrice>
-                  <ProductActions>
+                <ProductFooter> {/* Usar componente estilizado */}
+                  <ProductPrice>${product.price.toFixed(2)}</ProductPrice> {/* Usar componente estilizado */}
+                  <ProductActions> {/* Usar componente estilizado */}
                     <ViewDetailsButton
                       to={`/products/${product.id}`}
                       aria-label={`Ver detalles de ${product.name}`}
