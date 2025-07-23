@@ -1,5 +1,6 @@
+// src/components/ProductContext.jsx
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import * as api from '../services/api';
+import * as api from '../services/api'; // Asegúrate de que 'api' esté importado
 
 const ProductContext = createContext();
 
@@ -15,6 +16,10 @@ export const ProductProvider = ({ children }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    // NUEVO: Estado para las categorías
+    const [categories, setCategories] = useState([]);
+    const [loadingCategories, setLoadingCategories] = useState(true); // Opcional: estado de carga para categorías
+    const [errorCategories, setErrorCategories] = useState(null); // Opcional: estado de error para categorías
 
     // Función auxiliar para transformar el precio a número
     const transformProductPrice = (product) => {
@@ -23,7 +28,6 @@ export const ProductProvider = ({ children }) => {
         }
         return product;
     };
-
 
     // Función para obtener todos los productos
     const fetchProducts = useCallback(async () => {
@@ -39,29 +43,45 @@ export const ProductProvider = ({ children }) => {
         }
     }, []);
 
-    // Cargar productos al iniciar el provider
+    // NUEVO: Función para obtener todas las categorías
+    const fetchAllCategories = useCallback(async () => {
+        try {
+            setLoadingCategories(true);
+            setErrorCategories(null);
+            const data = await api.fetchCategories(); // Asegúrate de que api.fetchCategories() exista
+            setCategories(data); // `data` debería ser un array de categorías
+        } catch (err) {
+            setErrorCategories(err.message);
+        } finally {
+            setLoadingCategories(false);
+        }
+    }, []);
+
+
+    // Cargar productos y categorías al iniciar el provider
     useEffect(() => {
         fetchProducts();
-    }, [fetchProducts]);
+        fetchAllCategories(); // NUEVO: Cargar categorías cuando el proveedor se monta
+    }, [fetchProducts, fetchAllCategories]); // Añade fetchAllCategories a las dependencias
 
-    // Función para agregar un producto
+
+    // ... (Mantén las funciones addProduct, updateProduct, deleteProduct sin cambios)
     const addProduct = async (productData) => {
         try {
-            const newProduct = await api.createProduct(productData);
-            setProducts(prev => [...prev, newProduct]);
-            return { success: true, data: newProduct };
+            const productToSend = transformProductPrice(productData);
+            const newProduct = await api.createProduct(productToSend);
+            const transformedNewProduct = transformProductPrice(newProduct);
+            setProducts(prev => [...prev, transformedNewProduct]);
+            return { success: true, data: transformedNewProduct };
         } catch (err) {
             return { success: false, error: err.message };
         }
     };
 
-    // Función para actualizar un producto
     const updateProduct = async (productId, productData) => {
         try {
-            // Asegúrate de que el precio sea un número antes de enviar a la API
             const productToSend = transformProductPrice(productData);
             const updatedProduct = await api.updateProduct(productId, productToSend);
-            // Asegúrate de que el precio sea un número al actualizar el estado local
             const transformedUpdatedProduct = transformProductPrice(updatedProduct);
             setProducts(prev =>
                 prev.map(p => (p.id === productId ? transformedUpdatedProduct : p))
@@ -71,7 +91,6 @@ export const ProductProvider = ({ children }) => {
             return { success: false, error: err.message };
         }
     };
-    // Función para eliminar un producto
     const deleteProduct = async (productId) => {
         try {
             await api.deleteProduct(productId);
@@ -82,6 +101,7 @@ export const ProductProvider = ({ children }) => {
         }
     };
 
+
     const value = {
         products,
         loading,
@@ -89,7 +109,11 @@ export const ProductProvider = ({ children }) => {
         fetchProducts,
         addProduct,
         updateProduct,
-        deleteProduct
+        deleteProduct,
+        // NUEVO: Expón las categorías y sus estados de carga/error
+        categories,
+        loadingCategories,
+        errorCategories
     };
 
     return (
