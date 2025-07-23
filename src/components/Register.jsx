@@ -1,7 +1,22 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
-import './Login.css';
+import { toast } from 'react-toastify';
+import { Helmet } from 'react-helmet-async';
+
+
+import {
+  LoginContainer,
+  LoginCard,
+  LoginHeader,
+  LoginForm,
+  FormGroup,
+  LoginButton,
+  LoginFooter,
+  RegisterLink,
+
+} from './Login.styles';
+
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -10,9 +25,9 @@ const Register = () => {
     password: '',
     confirmPassword: ''
   });
-  const [error, setError] = useState('');
+
   const [loading, setLoading] = useState(false);
-  
+
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -25,36 +40,35 @@ const Register = () => {
 
   const validateForm = () => {
     if (!formData.name.trim()) {
-      setError('El nombre es requerido');
+      toast.error('El nombre es requerido');
       return false;
     }
-    
+
     if (!formData.email.trim()) {
-      setError('El email es requerido');
+      toast.error('El email es requerido');
       return false;
     }
-    
+
     if (formData.password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
+      toast.error('La contraseña debe tener al menos 6 caracteres');
       return false;
     }
-    
+
     if (formData.password !== formData.confirmPassword) {
-      setError('Las contraseñas no coinciden');
+      toast.error('Las contraseñas no coinciden');
       return false;
     }
-    
+
     return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setLoading(true);
 
     try {
@@ -63,35 +77,38 @@ const Register = () => {
         email: formData.email,
         password: formData.password
       });
-      
+
       if (result.success) {
-        navigate('/');
+        toast.success('¡Registro exitoso! Ahora puedes iniciar sesión.');
+        navigate('/login');
       } else {
-        setError(result.error);
+        toast.error(result.error || 'Error al registrar. Intenta nuevamente.');
       }
     } catch (err) {
-      setError('Error inesperado. Intenta nuevamente.');
+      toast.error('Error inesperado. Intenta nuevamente.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
+    <LoginContainer>
+      <Helmet>
+        <title>Registrarse - Mi Tienda Online</title>
+        <meta name="description" content="Crea una cuenta en Mi Tienda Online para disfrutar de una mejor experiencia de compra y acceder a funciones exclusivas." />
+        <link rel="canonical" href="http://www.mitiendaonline.com/register" />
+      </Helmet>
+
+      <LoginCard>
+        <LoginHeader>
           <h2>🛒 Crear Cuenta</h2>
           <p>Únete a Mi Tienda Online</p>
-        </div>
+        </LoginHeader>
 
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="login-form">
-          <div className="form-group">
+
+        <LoginForm onSubmit={handleSubmit}>
+          <FormGroup>
             <label htmlFor="name">Nombre completo:</label>
             <input
               type="text"
@@ -101,11 +118,11 @@ const Register = () => {
               onChange={handleChange}
               required
               placeholder="Tu nombre completo"
-              className="form-input"
-            />
-          </div>
 
-          <div className="form-group">
+            />
+          </FormGroup>
+
+          <FormGroup>
             <label htmlFor="email">Email:</label>
             <input
               type="email"
@@ -115,11 +132,11 @@ const Register = () => {
               onChange={handleChange}
               required
               placeholder="tu@email.com"
-              className="form-input"
-            />
-          </div>
 
-          <div className="form-group">
+            />
+          </FormGroup>
+
+          <FormGroup>
             <label htmlFor="password">Contraseña:</label>
             <input
               type="password"
@@ -129,11 +146,11 @@ const Register = () => {
               onChange={handleChange}
               required
               placeholder="Mínimo 6 caracteres"
-              className="form-input"
-            />
-          </div>
 
-          <div className="form-group">
+            />
+          </FormGroup>
+
+          <FormGroup>
             <label htmlFor="confirmPassword">Confirmar contraseña:</label>
             <input
               type="password"
@@ -143,26 +160,25 @@ const Register = () => {
               onChange={handleChange}
               required
               placeholder="Repite tu contraseña"
-              className="form-input"
+            // className="form-input" // ¡Elimina esta clase!
             />
-          </div>
+          </FormGroup>
 
-          <button
+          <LoginButton
             type="submit"
             disabled={loading}
-            className="login-button"
           >
             {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
-          </button>
-        </form>
+          </LoginButton>
+        </LoginForm>
 
-        <div className="login-footer">
+        <LoginFooter>
           <p>
-            ¿Ya tienes cuenta? <Link to="/login">Inicia sesión aquí</Link>
+            ¿Ya tienes cuenta? <RegisterLink to="/login">Inicia sesión aquí</RegisterLink>
           </p>
-        </div>
-      </div>
-    </div>
+        </LoginFooter>
+      </LoginCard>
+    </LoginContainer>
   );
 };
 

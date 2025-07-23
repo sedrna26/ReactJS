@@ -1,14 +1,19 @@
 import React from 'react';
-import './LoadingSpinner.css';
+import {
+    LoadingContainer,
+    SpinnerWrapper,
+    Spinner,
+    LoadingMessage
+} from './LoadingSpinner.styles';
 
 const LoadingSpinner = ({ message = "Cargando..." }) => {
     return (
-        <div className="loading-container">
-            <div className="loading-spinner">
-                <div className="spinner"></div>
-                <p className="loading-message">{message}</p>
-            </div>
-        </div>
+        <LoadingContainer aria-live="polite" aria-busy="true"> {/* Atributos ARIA para accesibilidad */}
+            <SpinnerWrapper>
+                <Spinner />
+                <LoadingMessage>{message}</LoadingMessage>
+            </SpinnerWrapper>
+        </LoadingContainer>
     );
 };
 

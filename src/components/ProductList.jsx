@@ -1,64 +1,80 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { fetchCategories } from '../services/api';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
-import './ProductList.css';
-import { useProducts } from './ProductContext'; // Importar useProducts del contexto
+import { useProducts } from './ProductContext';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { Helmet } from 'react-helmet-async';
+
+import {
+  ProductListContainer,
+  ProductListHeader,
+  FiltersContainer,
+  SearchContainer,
+  SearchInput,
+  SearchIcon,
+  StyledSelect,
+  NoProductsMessage,
+  ProductsGrid,
+  ProductCard,
+  ProductLink,
+  ProductImageContainer,
+  ProductImage,
+  ProductRating,
+  ProductInfo,
+  ProductCategoryBadge,
+  ProductName,
+  ProductDescription,
+  ProductFooter,
+  ProductPrice,
+  ProductActions,
+  ViewDetailsButton,
+  AddToCartButton,
+} from './ProductList.styles';
 
 const ProductList = ({ onAddToCart }) => {
-  const { products: contextProducts, loading: contextLoading, error: contextError, fetchProducts: refetchAllProducts } = useProducts(); // Obtener del contexto
+  const { products: contextProducts, loading: contextLoading, error: contextError, fetchProducts: refetchAllProducts } = useProducts();
 
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
 
-  // Cargar solo las categorías al montar el componente
-  // Los productos ahora vienen del contexto
   useEffect(() => {
     const loadCategories = async () => {
       try {
         const categoriesData = await fetchCategories();
         setCategories(categoriesData);
       } catch (err) {
-        // En un caso real, podrías manejar este error de categorías de otra forma
         console.error("Error al cargar categorías:", err.message);
       }
     };
     loadCategories();
   }, []);
 
-  // Función para manejar el reintento si hay un error global de productos
   const handleRetry = () => {
-    refetchAllProducts(); // Volver a cargar todos los productos desde el contexto
+    refetchAllProducts();
   };
 
-  // Filtrar productos por búsqueda y categoría
-  const filteredProductsBySearch = contextProducts.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = contextProducts.filter(product => {
+    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
-  // Filtrar por categoría (ahora se hace sobre los productos ya cargados por el contexto)
-  const filteredProductsByCategory = selectedCategory === 'all'
-    ? filteredProductsBySearch
-    : filteredProductsBySearch.filter(product => product.category === selectedCategory);
-
-
-  // Ordenar productos
-  const sortedProducts = [...filteredProductsByCategory].sort((a, b) => {
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
+      case 'name':
+        return a.name.localeCompare(b.name);
       case 'price-low':
         return a.price - b.price;
       case 'price-high':
         return b.price - a.price;
       case 'rating':
-        // Asegúrate de que product.rating y product.rating.rate existan
         return (b.rating?.rate || 0) - (a.rating?.rate || 0);
-      case 'name':
       default:
-        return a.name.localeCompare(b.name);
+        return 0;
     }
   });
 
@@ -67,111 +83,128 @@ const ProductList = ({ onAddToCart }) => {
   }
 
   if (contextError) {
-    return <ErrorMessage message={contextError} onRetry={handleRetry} />;
+    return (
+      <ErrorMessage
+        message={contextError}
+        onRetry={handleRetry}
+      />
+    );
   }
 
   return (
-    <div className="product-list">
-      <div className="product-list-header">
+    <ProductListContainer className="container-fluid">
+      <Helmet>
+        <title>Productos - Mi Tienda Online</title>
+        <meta name="description" content="Explora nuestra amplia selección de productos de alta calidad en Mi Tienda Online. Encuentra ofertas, productos nuevos y más." />
+        <meta name="keywords" content="productos, tienda online, e-commerce, ofertas, compras, calidad" />
+        <link rel="canonical" href="http://www.mitiendaonline.com/products" />
+      </Helmet>
+
+      <ProductListHeader>
         <h2>Productos Disponibles ({sortedProducts.length})</h2>
 
-        <div className="filters-container">
-          <div className="search-container">
-            <input
+        <FiltersContainer className="row mb-3">
+          <SearchContainer className="col-md-4 col-sm-12 mb-2">
+            <SearchInput
               type="text"
               placeholder="Buscar productos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
+              aria-label="Buscar productos por nombre o descripción"
             />
-            <span className="search-icon">🔍</span>
+            <SearchIcon aria-hidden="true">🔍</SearchIcon>
+          </SearchContainer>
+
+          <div className="col-md-4 col-sm-6 mb-2">
+            <StyledSelect
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              aria-label="Filtrar productos por categoría"
+            >
+              <option value="all">Todas las categorías</option>
+              {categories.map(category => (
+                <option key={category} value={category}>
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                </option>
+              ))}
+            </StyledSelect>
           </div>
 
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="category-select"
-          >
-            <option value="all">Todas las categorías</option>
-            {categories.map(category => (
-              <option key={category} value={category}>
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="sort-select"
-          >
-            <option value="name">Ordenar por nombre</option>
-            <option value="price-low">Precio: menor a mayor</option>
-            <option value="price-high">Precio: mayor a menor</option>
-            <option value="rating">Mejor valorado</option>
-          </select>
-        </div>
-      </div>
+          <div className="col-md-4 col-sm-6 mb-2">
+            <StyledSelect
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              aria-label="Ordenar productos por"
+            >
+              <option value="name">Ordenar por nombre</option>
+              <option value="price-low">Precio: menor a mayor</option>
+              <option value="price-high">Precio: mayor a menor</option>
+              <option value="rating">Mejor valorado</option>
+            </StyledSelect>
+          </div>
+        </FiltersContainer>
+      </ProductListHeader>
 
       {sortedProducts.length === 0 ? (
-        <div className="no-products">
+        <NoProductsMessage className="text-center py-5">
           <h3>No se encontraron productos</h3>
           <p>Intenta con otros términos de búsqueda o cambia la categoría.</p>
-        </div>
+        </NoProductsMessage>
       ) : (
-        <div className="products-grid">
+        <ProductsGrid className="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
           {sortedProducts.map(product => (
-            <div key={product.id} className="product-card">
-              <Link to={`/products/${product.id}`} className="product-link">
-                <div className="product-image-container">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="product-image"
-                  />
-                  {product.rating && (
-                    <div className="product-rating">
-                      ⭐ {product.rating.rate.toFixed(1)}
-                    </div>
-                  )}
-                </div>
-                <div className="product-info">
-                  <span className="product-category">{product.category}</span>
-                  <h3 className="product-name">{product.name}</h3>
-                  <p className="product-description">
-                    {product.description.length > 100
-                      ? `${product.description.substring(0, 100)}...`
-                      : product.description
-                    }
-                  </p>
-                </div>
-              </Link>
-              <div className="product-footer">
-                <span className="product-price">${product.price.toFixed(2)}</span>
-                <div className="product-actions">
-                  <Link
-                    to={`/products/${product.id}`}
-                    className="view-details-btn"
-                  >
-                    Ver Detalles
-                  </Link>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onAddToCart(product);
-                    }}
-                    className="add-to-cart-btn"
-                  >
-                    Agregar al Carrito
-                  </button>
-                </div>
-              </div>
+            <div key={product.id} className="col">
+              <ProductCard className="h-100 shadow-sm">
+                <ProductLink to={`/products/${product.id}`} aria-label={`Ver detalles de ${product.name}`}>
+                  <ProductImageContainer>
+                    <ProductImage
+                      src={product.image}
+                      alt={product.name}
+                    />
+                    {product.rating && (
+                      <ProductRating>
+                        ⭐ {product.rating.rate.toFixed(1)}
+                      </ProductRating>
+                    )}
+                  </ProductImageContainer>
+                  <ProductInfo>
+                    <ProductCategoryBadge className="bg-secondary text-white mb-2">{product.category}</ProductCategoryBadge> {/* Mantén clases de Bootstrap */}
+                    <ProductName>{product.name}</ProductName>
+                    <ProductDescription>
+                      {product.description.length > 100
+                        ? `${product.description.substring(0, 100)}...`
+                        : product.description
+                      }
+                    </ProductDescription>
+                  </ProductInfo>
+                </ProductLink>
+                <ProductFooter>
+                  <ProductPrice>${product.price.toFixed(2)}</ProductPrice>
+                  <ProductActions>
+                    <ViewDetailsButton
+                      to={`/products/${product.id}`}
+                      aria-label={`Ver detalles de ${product.name}`}
+                    >
+                      Ver Detalles
+                    </ViewDetailsButton>
+                    <AddToCartButton
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onAddToCart(product);
+                      }}
+                      aria-label={`Agregar ${product.name} al carrito`}
+                    >
+                      Agregar al Carrito
+                    </AddToCartButton>
+                  </ProductActions>
+                </ProductFooter>
+              </ProductCard>
             </div>
           ))}
-        </div>
+        </ProductsGrid>
       )}
-    </div>
+    </ProductListContainer>
   );
 };
 

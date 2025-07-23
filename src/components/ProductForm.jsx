@@ -1,19 +1,38 @@
-
 import React, { useState, useEffect } from 'react';
-import './ProductForm.css';
+import { useProducts } from './ProductContext';
+import { toast } from 'react-toastify';
+import {
+    ModalOverlay,
+    ProductFormContainer,
+    CloseButton,
+    FormTitle,
+    FormGroup,
+    FormActions,
+    SaveButton,
+    CancelButton,
+    ErrorMessage
+} from './ProductForm.styles';
+
 const ProductForm = ({ onSubmit, initialData = null, onCancel }) => {
+    const { categories } = useProducts();
     const [formData, setFormData] = useState({
         name: '',
         price: '',
         description: '',
-        image: 'https://picsum.photos/640/480?random=1', 
-        category: 'electronics'
+        category: '',
+        image: ''
     });
-    const [errors, setErrors] = useState({});
+    const [formErrors, setFormErrors] = useState({});
 
     useEffect(() => {
         if (initialData) {
-            setFormData(initialData);
+            setFormData({
+                name: initialData.name || '',
+                price: initialData.price || '',
+                description: initialData.description || '',
+                category: initialData.category || '',
+                image: initialData.image || ''
+            });
         }
     }, [initialData]);
 
@@ -22,56 +41,126 @@ const ProductForm = ({ onSubmit, initialData = null, onCancel }) => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const validate = () => {
-        const newErrors = {};
-        if (!formData.name.trim()) newErrors.name = 'El nombre es obligatorio.';
-        if (!formData.price || parseFloat(formData.price) <= 0) newErrors.price = 'El precio debe ser mayor a 0.';
-        if (formData.description.length < 10) newErrors.description = 'La descripción debe tener al menos 10 caracteres.';
+    const validateForm = () => {
+        const errors = {};
+        if (!formData.name.trim()) errors.name = 'El nombre es requerido.';
+        if (!formData.price || isNaN(formData.price) || parseFloat(formData.price) <= 0) errors.price = 'El precio debe ser un número positivo.';
+        if (!formData.description.trim()) errors.description = 'La descripción es requerida.';
+        if (!formData.category.trim()) errors.category = 'La categoría es requerida.';
+        if (!formData.image.trim()) errors.image = 'La URL de la imagen es requerida.';
+        else if (!/^https?:\/\/.+\.(jpg|jpeg|png|gif|svg)$/.test(formData.image)) errors.image = 'URL de imagen inválida.';
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (validate()) {
-            // Asegurarse de que price sea un número antes de enviarlo
-            const dataToSend = {
-                ...formData,
-                price: parseFloat(formData.price),
-            };
-            onSubmit(dataToSend);
+        if (validateForm()) {
+            onSubmit(formData);
+        } else {
+            toast.error('Por favor, corrige los errores del formulario.');
         }
     };
 
     return (
-        <div className="product-form-overlay">
-            <div className="product-form-card">
-                <h3>{initialData ? 'Editar Producto' : 'Agregar Producto'}</h3>
+        <ModalOverlay>
+            <ProductFormContainer role="dialog" aria-modal="true" aria-labelledby="form-title">
+                <CloseButton onClick={onCancel} aria-label="Cerrar formulario">
+                    &times;
+                </CloseButton>
+                <FormTitle id="form-title">
+                    {initialData ? 'Editar Producto' : 'Añadir Nuevo Producto'}
+                </FormTitle>
                 <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label>Nombre:</label>
-                        <input type="text" name="name" value={formData.name} onChange={handleChange} />
-                        {errors.name && <small className="error-text">{errors.name}</small>}
-                    </div>
-                    <div className="form-group">
-                        <label>Precio:</label>
-                        <input type="number" name="price" value={formData.price} onChange={handleChange} />
-                        {errors.price && <small className="error-text">{errors.price}</small>}
-                    </div>
-                    <div className="form-group">
-                        <label>Descripción:</label>
-                        <textarea name="description" value={formData.description} onChange={handleChange}></textarea>
-                        {errors.description && <small className="error-text">{errors.description}</small>}
-                    </div>
-                    {/* Campos de imagen y categoría pueden ser añadidos aquí si se desea */}
-                    <div className="form-actions">
-                        <button type="button" onClick={onCancel} className="btn-cancel">Cancelar</button>
-                        <button type="submit" className="btn-submit">{initialData ? 'Actualizar' : 'Guardar'}</button>
-                    </div>
+                    <FormGroup>
+                        <label htmlFor="name">Nombre:</label>
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            placeholder="Nombre del producto"
+                            aria-required="true" // Indica que el campo es requerido
+                        />
+                        {formErrors.name && <ErrorMessage>{formErrors.name}</ErrorMessage>}
+                    </FormGroup>
+
+                    <FormGroup>
+                        <label htmlFor="price">Precio:</label>
+                        <input
+                            type="number"
+                            id="price"
+                            name="price"
+                            value={formData.price}
+                            onChange={handleChange}
+                            step="0.01"
+                            min="0"
+                            placeholder="Ej: 19.99"
+                            aria-required="true"
+                        />
+                        {formErrors.price && <ErrorMessage>{formErrors.price}</ErrorMessage>}
+                    </FormGroup>
+
+                    <FormGroup>
+                        <label htmlFor="description">Descripción:</label>
+                        <textarea
+                            id="description"
+                            name="description"
+                            value={formData.description}
+                            onChange={handleChange}
+                            rows="4"
+                            placeholder="Descripción detallada del producto"
+                            aria-required="true"
+                        ></textarea>
+                        {formErrors.description && <ErrorMessage>{formErrors.description}</ErrorMessage>}
+                    </FormGroup>
+
+                    <FormGroup>
+                        <label htmlFor="category">Categoría:</label>
+                        <select
+                            id="category"
+                            name="category"
+                            value={formData.category}
+                            onChange={handleChange}
+                            aria-required="true"
+                        >
+                            <option value="">Selecciona una categoría</option>
+                            {categories.map((cat) => (
+                                <option key={cat} value={cat}>
+                                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                                </option>
+                            ))}
+                        </select>
+                        {formErrors.category && <ErrorMessage>{formErrors.category}</ErrorMessage>}
+                    </FormGroup>
+
+                    <FormGroup>
+                        <label htmlFor="image">URL de Imagen:</label>
+                        <input
+                            type="url"
+                            id="image"
+                            name="image"
+                            value={formData.image}
+                            onChange={handleChange}
+                            placeholder="https://ejemplo.com/imagen.jpg"
+                            aria-required="true"
+                        />
+                        {formErrors.image && <ErrorMessage>{formErrors.image}</ErrorMessage>}
+                    </FormGroup>
+
+                    <FormActions>
+                        <CancelButton type="button" onClick={onCancel} aria-label="Cancelar">
+                            Cancelar
+                        </CancelButton>
+                        <SaveButton type="submit" aria-label={initialData ? "Guardar cambios" : "Añadir producto"}>
+                            {initialData ? 'Guardar Cambios' : 'Añadir Producto'}
+                        </SaveButton>
+                    </FormActions>
                 </form>
-            </div>
-        </div>
+            </ProductFormContainer>
+        </ModalOverlay>
     );
 };
 

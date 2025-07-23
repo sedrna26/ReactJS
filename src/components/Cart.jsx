@@ -1,91 +1,109 @@
-
-
 import React from 'react';
-import { Link } from 'react-router-dom';
-import './Cart.css';
-
+import { Helmet } from 'react-helmet-async';
+import {
+    CartContainer,
+    CartTitle,
+    EmptyCartMessage,
+    ContinueShoppingButton,
+    CartItemsContainer,
+    CartItem,
+    CartItemLink,
+    CartItemImage,
+    CartItemInfo,
+    ItemPrice,
+    QuantitySelector,
+    QuantityButton,
+    QuantityDisplay,
+    ItemTotal,
+    RemoveButton,
+    CartTotalContainer,
+    TotalPrice,
+    CartActions,
+    CheckoutButton
+} from './Cart.styles';
 
 const Cart = ({ cartItems, onRemoveFromCart, onUpdateQuantity, onCheckout }) => {
     const totalPrice = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
 
     if (cartItems.length === 0) {
         return (
-            <div className="cart">
-                <h2>Carrito de Compras</h2>
-                <div className="empty-cart">
+            <CartContainer>
+                <Helmet>
+                    <title>Carrito de Compras Vacío - Mi Tienda Online</title>
+                    <meta name="description" content="Tu carrito de compras está vacío. Descubre nuestros productos y añade algunos." />
+                    <link rel="canonical" href="http://www.mitiendaonline.com/cart" /> {/* Reemplaza con tu URL real */}
+                </Helmet>
+                <CartTitle>Carrito de Compras</CartTitle>
+                <EmptyCartMessage>
                     <p>Tu carrito está vacío</p>
                     <p>¡Agrega algunos productos!</p>
-                    <Link to="/products" className="continue-shopping-btn">
+                    <ContinueShoppingButton to="/products">
                         Continuar Comprando
-                    </Link>
-                </div>
-            </div>
+                    </ContinueShoppingButton>
+                </EmptyCartMessage>
+            </CartContainer>
         );
     }
 
     return (
-        <div className="cart">
-            <h2>Carrito de Compras ({cartItems.length} productos)</h2>
-            <div className="cart-items">
-               
+        <CartContainer>
+            <Helmet>
+                <title>Carrito de Compras ({cartItems.length}) - Mi Tienda Online</title>
+                <meta name="description" content={`Tienes ${cartItems.length} productos en tu carrito de compras.`} />
+                <link rel="canonical" href="http://www.mitiendaonline.com/cart" /> {/* Reemplaza con tu URL real */}
+            </Helmet>
+            <CartTitle>Carrito de Compras ({cartItems.length} productos)</CartTitle>
+            <CartItemsContainer>
                 {cartItems.map(item => (
-                    <div key={item.id} className="cart-item">
-                        <Link to={`/products/${item.id}`} className="cart-item-link">
-                            <img
+                    <CartItem key={item.id}>
+                        <CartItemLink to={`/products/${item.id}`}>
+                            <CartItemImage
                                 src={item.image}
                                 alt={item.name}
-                                className="cart-item-image"
                             />
-                        </Link>
-                        <div className="cart-item-info">
-                            <Link to={`/products/${item.id}`} className="cart-item-name-link">
-                                <h4 className="cart-item-name">{item.name}</h4>
-                            </Link>
-                            <p className="cart-item-price">${item.price.toFixed(2)}</p>
-                        </div>
-                        <div className="cart-item-controls">
-                            <div className="quantity-controls">
-                                <button
-                                    onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                                    className="quantity-btn"
-                                    disabled={item.quantity <= 1}
-                                >
-                                    -
-                                </button>
-                                <span className="quantity">{item.quantity}</span>
-                                <button
-                                    onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                                    className="quantity-btn"
-                                >
-                                    +
-                                </button>
-                            </div>
-                            <div className="item-total">
-                                ${(item.price * item.quantity).toFixed(2)}
-                            </div>
-                            <button
-                                onClick={() => onRemoveFromCart(item.id)}
-                                className="remove-btn"
+                            <CartItemInfo>
+                                <h3>{item.name}</h3>
+                                <p>Precio Unitario: ${item.price.toFixed(2)}</p>
+                            </CartItemInfo>
+                        </CartItemLink>
+                        <ItemPrice>${item.price.toFixed(2)}</ItemPrice>
+                        <QuantitySelector>
+                            <QuantityButton
+                                onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                                disabled={item.quantity <= 1}
                             >
-                                Eliminar
-                            </button>
-                        </div>
-                    </div>
+                                -
+                            </QuantityButton>
+                            <QuantityDisplay>{item.quantity}</QuantityDisplay>
+                            <QuantityButton
+                                onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                            >
+                                +
+                            </QuantityButton>
+                        </QuantitySelector>
+                        <ItemTotal>
+                            ${(item.price * item.quantity).toFixed(2)}
+                        </ItemTotal>
+                        <RemoveButton
+                            onClick={() => onRemoveFromCart(item.id)}
+                        >
+                            Eliminar
+                        </RemoveButton>
+                    </CartItem>
                 ))}
-            </div>
-            <div className="cart-total">
-                <h3>Total: ${totalPrice.toFixed(2)}</h3>
-                <div className="cart-actions">
-                    <Link to="/products" className="continue-shopping-btn">
+            </CartItemsContainer>
+            <CartTotalContainer>
+                <TotalPrice>Total: ${totalPrice.toFixed(2)}</TotalPrice>
+                <CartActions>
+                    <ContinueShoppingButton to="/products">
                         Continuar Comprando
-                    </Link>
-                    
-                    <button className="checkout-btn" onClick={onCheckout}>
+                    </ContinueShoppingButton>
+                    <CheckoutButton onClick={onCheckout} disabled={cartItems.length === 0}>
                         Proceder al Pago
-                    </button>
-                </div>
-            </div>
-        </div>
+                    </CheckoutButton>
+                </CartActions>
+            </CartTotalContainer>
+        </CartContainer>
     );
 };
 

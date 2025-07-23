@@ -1,7 +1,16 @@
-
 import React from 'react';
 import { useAuth } from './AuthContext';
-import './Profile.css'; 
+
+
+import {
+  ProfileContainer,
+  ProfileCard,
+  ProfileHeader,
+  ProfileAvatar,
+  ProfileBody,
+  ProfileInfoItem,
+  UserRole,
+} from './Profile.styles';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -11,30 +20,30 @@ const Profile = () => {
   }
 
   return (
-    <div className="profile-container">
-      <div className="profile-card">
-        <div className="profile-header">
-          <span className="profile-avatar">
+    <ProfileContainer>
+      <ProfileCard>
+        <ProfileHeader>
+          <ProfileAvatar>
             {user.name?.charAt(0)?.toUpperCase()}
-          </span>
+          </ProfileAvatar>
           <h2>Mi Perfil</h2>
-        </div>
-        <div className="profile-body">
-          <div className="profile-info-item">
+        </ProfileHeader>
+        <ProfileBody>
+          <ProfileInfoItem>
             <strong>Nombre:</strong>
             <p>{user.name}</p>
-          </div>
-          <div className="profile-info-item">
+          </ProfileInfoItem>
+          <ProfileInfoItem>
             <strong>Email:</strong>
             <p>{user.email}</p>
-          </div>
-          <div className="profile-info-item">
+          </ProfileInfoItem>
+          <ProfileInfoItem>
             <strong>Rol:</strong>
-            <p className="user-role">{user.role}</p>
-          </div>
-        </div>
-      </div>
-    </div>
+            <UserRole>{user.role}</UserRole>
+          </ProfileInfoItem>
+        </ProfileBody>
+      </ProfileCard>
+    </ProfileContainer>
   );
 };
 

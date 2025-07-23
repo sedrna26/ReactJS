@@ -1,152 +1,143 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
-import './Login.css';
+import { toast } from 'react-toastify';
+import { Helmet } from 'react-helmet-async';
+
+
+import {
+  LoginContainer,
+  LoginCard,
+  LoginHeader,
+  LoginForm,
+  FormGroup,
+  LoginButton,
+  LoginFooter,
+  RegisterLink,
+  ErrorMessageDisplay
+} from './Login.styles';
+import { FaLock } from 'react-icons/fa';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showDemo, setShowDemo] = useState(false);
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  
-  const from = location.state?.from?.pathname || '/';
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const validateForm = () => {
+    if (!formData.email.trim()) {
+      setError('El email es requerido.');
+      return false;
+    }
+    if (!formData.password.trim()) {
+      setError('La contraseña es requerida.');
+      return false;
+    }
+    setError('');
+    return true;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError(''); // Limpiar errores anteriores
+
+    if (!validateForm()) {
+      return; // Detener si la validación falla
+    }
+
     setLoading(true);
 
     try {
-      const result = await login(email, password);
-      
+      const result = await login(formData.email, formData.password);
+
       if (result.success) {
-        navigate(from, { replace: true });
+        toast.success('¡Inicio de sesión exitoso!');
+        navigate('/products'); // Redirige a /products después del login
       } else {
-        setError(result.error);
+        setError(result.error || 'Credenciales inválidas. Intenta nuevamente.');
+        toast.error(result.error || 'Credenciales inválidas. Intenta nuevamente.');
       }
     } catch (err) {
       setError('Error inesperado. Intenta nuevamente.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDemoLogin = async (role) => {
-    setLoading(true);
-    setError('');
-    
-    const credentials = role === 'admin' 
-      ? { email: 'admin@tienda.com', password: 'admin123' }
-      : { email: 'user@tienda.com', password: 'user123' };
-    
-    try {
-      const result = await login(credentials.email, credentials.password);
-      if (result.success) {
-        navigate(from, { replace: true });
-      }
-    } catch (err) {
-      setError('Error en login demo');
+      toast.error('Error inesperado. Intenta nuevamente.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
-          <h2>🛒 Iniciar Sesión</h2>
-          <p>Ingresa a tu cuenta de Mi Tienda Online</p>
-        </div>
+    <LoginContainer>
+      <Helmet>
+        <title>Iniciar Sesión - Mi Tienda Online</title>
+        <meta name="description" content="Inicia sesión en tu cuenta de Mi Tienda Online para acceder a tus pedidos y beneficios exclusivos." />
+        <link rel="canonical" href="http://www.mitiendaonline.com/login" /> {/* Reemplaza con tu URL real */}
+      </Helmet>
 
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
+      <LoginCard>
+        <LoginHeader>
+          <h2><FaLock /> Iniciar Sesión</h2>
+          <p>Bienvenido de nuevo</p>
+        </LoginHeader>
 
-        <form onSubmit={handleSubmit} className="login-form">
-          <div className="form-group">
+        {error && <ErrorMessageDisplay>{error}</ErrorMessageDisplay>}
+
+        <LoginForm onSubmit={handleSubmit}>
+          <FormGroup>
             <label htmlFor="email">Email:</label>
             <input
               type="email"
               id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
               required
               placeholder="tu@email.com"
-              className="form-input"
+              aria-label="Introduce tu email" // Etiqueta ARIA
             />
-          </div>
+          </FormGroup>
 
-          <div className="form-group">
+          <FormGroup>
             <label htmlFor="password">Contraseña:</label>
             <input
               type="password"
               id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
               required
               placeholder="Tu contraseña"
-              className="form-input"
+              aria-label="Introduce tu contraseña" // Etiqueta ARIA
             />
-          </div>
+          </FormGroup>
 
-          <button
+          <LoginButton
             type="submit"
             disabled={loading}
-            className="login-button"
+            aria-label={loading ? "Iniciando sesión..." : "Iniciar sesión"} // Etiqueta ARIA dinámica
           >
-            {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-          </button>
-        </form>
+            {loading ? 'Iniciando Sesión...' : 'Iniciar Sesión'}
+          </LoginButton>
+        </LoginForm>
 
-        <div className="login-footer">
+        <LoginFooter>
           <p>
-            ¿No tienes cuenta? <Link to="/register">Regístrate aquí</Link>
+            ¿No tienes cuenta? <RegisterLink to="/register">Regístrate aquí</RegisterLink>
           </p>
-          
-          <div className="demo-section">
-            <button
-              type="button"
-              onClick={() => setShowDemo(!showDemo)}
-              className="demo-toggle"
-            >
-              {showDemo ? 'Ocultar' : 'Mostrar'} Cuentas Demo
-            </button>
-            
-            {showDemo && (
-              <div className="demo-accounts">
-                <h4>Cuentas de prueba:</h4>
-                <div className="demo-buttons">
-                  <button
-                    onClick={() => handleDemoLogin('admin')}
-                    className="demo-button admin"
-                    disabled={loading}
-                  >
-                    👑 Administrador
-                    <small>admin@tienda.com / admin123</small>
-                  </button>
-                  <button
-                    onClick={() => handleDemoLogin('user')}
-                    className="demo-button user"
-                    disabled={loading}
-                  >
-                    👤 Usuario
-                    <small>user@tienda.com / user123</small>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+        </LoginFooter>
+      </LoginCard>
+    </LoginContainer>
   );
 };
 

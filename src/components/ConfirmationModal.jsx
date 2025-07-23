@@ -1,21 +1,32 @@
-
 import React from 'react';
-import './ConfirmationModal.css';
+import {
+    ModalOverlay,
+    ModalContent,
+    ModalMessage,
+    ModalButtons,
+    ConfirmButton,
+    CancelButton
+} from './ConfirmationModal.styles';
 
-const ConfirmationModal = ({ message, onConfirm, onCancel, isOpen }) => {
-    if (!isOpen) return null;
+const ConfirmationModal = ({ isOpen, message, onConfirm, onCancel }) => {
+    if (!isOpen) {
+        return null;
+    }
 
     return (
-        <div className="modal-overlay">
-            <div className="modal-content">
-                <h4>Confirmación</h4>
-                <p>{message}</p>
-                <div className="modal-actions">
-                    <button onClick={onCancel} className="btn-secondary">Cancelar</button>
-                    <button onClick={onConfirm} className="btn-danger">Confirmar</button>
-                </div>
-            </div>
-        </div>
+        <ModalOverlay>
+            <ModalContent role="dialog" aria-modal="true" aria-labelledby="modal-message">
+                <ModalMessage id="modal-message">{message}</ModalMessage>
+                <ModalButtons>
+                    <ConfirmButton onClick={onConfirm} aria-label="Confirmar acción">
+                        Confirmar
+                    </ConfirmButton>
+                    <CancelButton onClick={onCancel} aria-label="Cancelar acción">
+                        Cancelar
+                    </CancelButton>
+                </ModalButtons>
+            </ModalContent>
+        </ModalOverlay>
     );
 };
 

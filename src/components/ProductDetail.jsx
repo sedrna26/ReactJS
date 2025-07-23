@@ -3,7 +3,39 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { fetchProductById } from '../services/api';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
-import './ProductDetail.css';
+import { Helmet } from 'react-helmet-async';
+
+// Importa los componentes estilizados
+import {
+    ProductDetailContainer,
+    Breadcrumb,
+    ProductDetailWrapper,
+    ProductImageSection,
+    ProductDetailImage,
+    ProductInfoSection,
+    ProductCategory,
+    ProductTitle,
+    ProductRating,
+    Stars,
+    Star,
+    RatingText,
+    ProductPrice,
+    ProductDescription,
+    PurchaseSection,
+    QuantitySelector,
+    QuantityInput,
+    AddToCartBtn,
+    ActionButtons,
+    BackButton,
+    ViewCartButton,
+    BackButtonContainer
+} from './ProductDetail.styles';
+
+
+import { FaShoppingCart, FaArrowLeft, FaEye, FaStar } from 'react-icons/fa';
+
+import { toast } from 'react-toastify';
+
 
 const ProductDetail = ({ onAddToCart }) => {
     const { id } = useParams();
@@ -18,10 +50,9 @@ const ProductDetail = ({ onAddToCart }) => {
             try {
                 setLoading(true);
                 setError(null);
-                
+
                 const productData = await fetchProductById(id);
-                
-                // Transformar los datos para que coincidan con nuestro formato
+
                 const transformedProduct = {
                     id: productData.id,
                     name: productData.title,
@@ -31,10 +62,11 @@ const ProductDetail = ({ onAddToCart }) => {
                     category: productData.category,
                     rating: productData.rating
                 };
-                
+
                 setProduct(transformedProduct);
             } catch (err) {
                 setError(err.message);
+                toast.error(`Error al cargar el producto: ${err.message}`);
             } finally {
                 setLoading(false);
             }
@@ -47,13 +79,10 @@ const ProductDetail = ({ onAddToCart }) => {
 
     const handleAddToCart = () => {
         if (product) {
-            // Agregar la cantidad especificada al carrito
             for (let i = 0; i < quantity; i++) {
                 onAddToCart(product);
             }
-            
-            // Mostrar mensaje personalizado
-            alert(`${quantity} x ${product.name} agregado(s) al carrito!`);
+            toast.success(`${quantity} x ${product.name} agregado(s) al carrito!`);
         }
     };
 
@@ -70,120 +99,139 @@ const ProductDetail = ({ onAddToCart }) => {
 
     if (error) {
         return (
-            <div className="product-detail-container">
-                <ErrorMessage 
-                    message={error} 
-                    onRetry={() => window.location.reload()} 
+            <ProductDetailContainer>
+                <Helmet> {/* Helmet para la página de error */}
+                    <title>Error - Producto no encontrado</title>
+                    <meta name="description" content="Ha ocurrido un error al cargar el producto o el producto no fue encontrado." />
+                </Helmet>
+                <ErrorMessage
+                    message={error}
+                    onRetry={() => window.location.reload()}
                 />
-                <div className="back-button-container">
-                    <Link to="/products" className="back-button">
-                        ← Volver a productos
-                    </Link>
-                </div>
-            </div>
+                <BackButtonContainer>
+                    <BackButton to="/products">
+                        <FaArrowLeft style={{ marginRight: '8px' }} /> Volver a productos
+                    </BackButton>
+                </BackButtonContainer>
+            </ProductDetailContainer>
         );
     }
 
     if (!product) {
         return (
-            <div className="product-detail-container">
+            <ProductDetailContainer>
+                <Helmet> {/* Helmet para el caso de producto no encontrado */}
+                    <title>Producto no encontrado - Mi Tienda</title>
+                    <meta name="description" content="El producto que buscas no existe o ha sido eliminado." />
+                </Helmet>
                 <ErrorMessage message="Producto no encontrado" />
-                <div className="back-button-container">
-                    <Link to="/products" className="back-button">
-                        ← Volver a productos
-                    </Link>
-                </div>
-            </div>
+                <BackButtonContainer>
+                    <BackButton to="/products">
+                        <FaArrowLeft style={{ marginRight: '8px' }} /> Volver a productos
+                    </BackButton>
+                </BackButtonContainer>
+            </ProductDetailContainer>
         );
     }
 
     return (
-        <div className="product-detail-container fade-in">
-            <div className="breadcrumb">
+        <ProductDetailContainer className="fade-in">
+            <Helmet> {/* Helmet para la página de detalle del producto */}
+                <title>{product.name} - Mi Tienda Online</title>
+                <meta name="description" content={product.description?.substring(0, 160) + "..."} /> {/* Descripción corta para SEO */}
+                <meta name="keywords" content={`${product.name}, ${product.category}, ${product.name} precio, comprar ${product.name}`} />
+                <meta property="og:title" content={product.name} />
+                <meta property="og:description" content={product.description?.substring(0, 160) + "..."} />
+                <meta property="og:image" content={product.image} />
+                <meta property="og:url" content={`http://www.mitiendaonline.com/products/${product.id}`} /> {/* URL real del producto */}
+                <link rel="canonical" href={`http://www.mitiendaonline.com/products/${product.id}`} /> {/* URL canónica */}
+            </Helmet>
+
+            <Breadcrumb>
                 <Link to="/products">Productos</Link>
                 <span> / </span>
                 <span className="current">{product.name}</span>
-            </div>
+            </Breadcrumb>
 
-            <div className="product-detail">
-                <div className="product-image-section">
-                    <img 
-                        src={product.image} 
+            <ProductDetailWrapper>
+                <ProductImageSection>
+                    <ProductDetailImage
+                        src={product.image}
                         alt={product.name}
-                        className="product-detail-image"
                     />
-                </div>
+                </ProductImageSection>
 
-                <div className="product-info-section">
-                    <div className="product-category">
+                <ProductInfoSection>
+                    <ProductCategory>
                         {product.category?.toUpperCase()}
-                    </div>
-                    
-                    <h1 className="product-title">{product.name}</h1>
-                    
+                    </ProductCategory>
+
+                    <ProductTitle>{product.name}</ProductTitle>
+
                     {product.rating && (
-                        <div className="product-rating">
-                            <div className="stars">
+                        <ProductRating>
+                            <Stars>
                                 {Array.from({ length: 5 }, (_, i) => (
-                                    <span 
-                                        key={i} 
-                                        className={i < Math.floor(product.rating.rate) ? 'star filled' : 'star'}
+                                    <Star
+                                        key={i}
+                                        className={i < Math.floor(product.rating.rate) ? 'filled' : ''}
+                                        aria-label={`${i + 1} estrellas`}
                                     >
-                                        ⭐
-                                    </span>
+                                        <FaStar />
+                                    </Star>
                                 ))}
-                            </div>
-                            <span className="rating-text">
+                            </Stars>
+                            <RatingText>
                                 {product.rating.rate} ({product.rating.count} reseñas)
-                            </span>
-                        </div>
+                            </RatingText>
+                        </ProductRating>
                     )}
 
-                    <div className="product-price">
+                    <ProductPrice>
                         ${product.price.toFixed(2)}
-                    </div>
+                    </ProductPrice>
 
-                    <p className="product-description">
+                    <ProductDescription>
                         {product.description}
-                    </p>
+                    </ProductDescription>
 
-                    <div className="purchase-section">
-                        <div className="quantity-selector">
+                    <PurchaseSection>
+                        <QuantitySelector>
                             <label htmlFor="quantity">Cantidad:</label>
-                            <input
+                            <QuantityInput
                                 id="quantity"
                                 type="number"
                                 min="1"
                                 max="10"
                                 value={quantity}
                                 onChange={handleQuantityChange}
-                                className="quantity-input"
+                                aria-label="Seleccionar cantidad"
                             />
-                        </div>
+                        </QuantitySelector>
 
-                        <button
+                        <AddToCartBtn
                             onClick={handleAddToCart}
-                            className="add-to-cart-btn primary"
+                            aria-label={`Agregar ${product.name} al carrito`}
                         >
-                            Agregar al Carrito
-                        </button>
-                    </div>
+                            <FaShoppingCart style={{ marginRight: '8px' }} /> Agregar al Carrito
+                        </AddToCartBtn>
+                    </PurchaseSection>
 
-                    <div className="action-buttons">
-                        <button
+                    <ActionButtons>
+                        <BackButton
                             onClick={() => navigate(-1)}
-                            className="back-button secondary"
+                            aria-label="Volver a la página anterior"
                         >
-                            ← Volver
-                        </button>
-                        
-                        <Link to="/cart" className="view-cart-button">
-                            Ver Carrito
-                        </Link>
-                    </div>
-                </div>
-            </div>
-        </div>
+                            <FaArrowLeft style={{ marginRight: '8px' }} /> Volver
+                        </BackButton>
+
+                        <ViewCartButton to="/cart" aria-label="Ver el carrito de compras">
+                            <FaEye style={{ marginRight: '8px' }} /> Ver Carrito
+                        </ViewCartButton>
+                    </ActionButtons>
+                </ProductInfoSection>
+            </ProductDetailWrapper>
+        </ProductDetailContainer>
     );
 };
 
