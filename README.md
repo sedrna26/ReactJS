@@ -230,7 +230,7 @@ REACT_APP_ENVIRONMENT=production
 
 **Horacio A. Rodriguez**
 - GitHub: [@sedrna26](https://github.com/sedrna26)
-- LinkedIn: [Tu Perfil](https://linkedin.com/in/tu-perfil)
+- LinkedIn: [Tu Perfil](https://www.linkedin.com/in/horacio-andr%C3%A9s-rodriguez-b621a8224?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app)
 - Email: sedrna26@gmail.com
 
 ## 🙏 Agradecimientos
