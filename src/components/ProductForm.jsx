@@ -6,7 +6,7 @@ const ProductForm = ({ onSubmit, initialData = null, onCancel }) => {
         name: '',
         price: '',
         description: '',
-        image: 'https://picsum.photos/640/480?random=1', // 
+        image: 'https://picsum.photos/640/480?random=1', 
         category: 'electronics'
     });
     const [errors, setErrors] = useState({});
