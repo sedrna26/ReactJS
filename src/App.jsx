@@ -11,11 +11,11 @@ import ErrorMessage from './components/ErrorMessage';
 import Login from './components/Login';
 import Register from './components/Register';
 import ProtectedRoute from './components/ProtectedRoute';
-import Profile from './components/Profile'; 
-import OrderHistory from './components/OrderHistory'; 
-import AdminDashboard from './components/AdminDashboard'; 
+import Profile from './components/Profile';
+import OrderHistory from './components/OrderHistory';
+import AdminDashboard from './components/AdminDashboard';
 
-
+import { ProductProvider } from './components/ProductContext';
 import { AuthProvider } from './components/AuthContext';
 import './App.css';
 
@@ -101,80 +101,82 @@ function App() {
 
   return (
     <AuthProvider>
-      <Router>
-        <Layout cartItemsCount={totalItemsInCart}>
-          <Routes>
-          
-            <Route 
-              path="/" 
-              element={<ProductList onAddToCart={addToCart} />} 
-            />
-            <Route 
-              path="/products" 
-              element={<ProductList onAddToCart={addToCart} />} 
-            />
-            <Route 
-              path="/products/:id" 
-              element={<ProductDetail onAddToCart={addToCart} />} 
-            />
-            <Route 
-              path="/login" 
-              element={<Login />} 
-            />
-            <Route 
-              path="/register" 
-              element={<Register />} 
-            />
+      {/* Envuelve todo con ProductProvider */}
+      <ProductProvider>
+        <Router>
+          <Layout cartItemsCount={totalItemsInCart}>
+            <Routes>
+              <Route
+                path="/"
+                element={<ProductList onAddToCart={addToCart} />}
+              />
+              <Route
+                path="/products"
+                element={<ProductList onAddToCart={addToCart} />}
+              />
+              <Route
+                path="/products/:id"
+                element={<ProductDetail onAddToCart={addToCart} />}
+              />
+              <Route
+                path="/login"
+                element={<Login />}
+              />
+              <Route
+                path="/register"
+                element={<Register />}
+              />
 
-           
-            <Route 
-              path="/cart" 
-              element={
-                <ProtectedRoute>
-                  <Cart
-                    cartItems={cartItems}
-                    onRemoveFromCart={removeFromCart}
-                    onUpdateQuantity={updateQuantity}
-                    onCheckout={processCheckout}
-                  />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/profile" 
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/orders" 
-              element={
-                <ProtectedRoute>
-                  <OrderHistory />
-                </ProtectedRoute>
-              } 
-            />
 
-            
-            <Route 
-              path="/admin" 
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminDashboard />
-                </ProtectedRoute>
-              } 
-            />
+              <Route
+                path="/cart"
+                element={
+                  <ProtectedRoute>
+                    <Cart
+                      cartItems={cartItems}
+                      onRemoveFromCart={removeFromCart}
+                      onUpdateQuantity={updateQuantity}
+                      onCheckout={processCheckout}
+                    />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders"
+                element={
+                  <ProtectedRoute>
+                    <OrderHistory />
+                  </ProtectedRoute>
+                }
+              />
 
-       
-            <Route 
-              path="*" 
-              element={<ErrorMessage message="Página no encontrada" />} 
-            />
-          </Routes>
-        </Layout>
-      </Router>
+
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+
+              <Route
+                path="*"
+                element={<ErrorMessage message="Página no encontrada" />}
+              />
+            </Routes>
+          </Layout>
+        </Router>
+      </ProductProvider>
     </AuthProvider>
   );
 }

@@ -1,96 +1,60 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchProducts, fetchCategories, fetchProductsByCategory } from '../services/api';
+import { fetchCategories } from '../services/api';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
 import './ProductList.css';
+import { useProducts } from './ProductContext'; // Importar useProducts del contexto
 
 const ProductList = ({ onAddToCart }) => {
-  const [products, setProducts] = useState([]);
+  const { products: contextProducts, loading: contextLoading, error: contextError, fetchProducts: refetchAllProducts } = useProducts(); // Obtener del contexto
+
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
 
-  // Cargar productos y categorías al montar el componente
+  // Cargar solo las categorías al montar el componente
+  // Los productos ahora vienen del contexto
   useEffect(() => {
-    loadInitialData();
+    const loadCategories = async () => {
+      try {
+        const categoriesData = await fetchCategories();
+        setCategories(categoriesData);
+      } catch (err) {
+        // En un caso real, podrías manejar este error de categorías de otra forma
+        console.error("Error al cargar categorías:", err.message);
+      }
+    };
+    loadCategories();
   }, []);
 
-  // Filtrar productos cuando cambie la categoría
-  useEffect(() => {
-    if (selectedCategory !== 'all') {
-      loadProductsByCategory(selectedCategory);
-    } else {
-      loadAllProducts();
-    }
-  }, [selectedCategory]);
-
-  const loadInitialData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const [productsData, categoriesData] = await Promise.all([
-        fetchProducts(),
-        fetchCategories()
-      ]);
-
-      setProducts(productsData);
-      setCategories(categoriesData);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadAllProducts = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const productsData = await fetchProducts();
-      setProducts(productsData);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadProductsByCategory = async (category) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const productsData = await fetchProductsByCategory(category);
-      setProducts(productsData);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Función para manejar el reintento si hay un error global de productos
   const handleRetry = () => {
-    loadInitialData();
+    refetchAllProducts(); // Volver a cargar todos los productos desde el contexto
   };
 
-  // Filtrar productos por búsqueda
-  const filteredProducts = products.filter(product =>
+  // Filtrar productos por búsqueda y categoría
+  const filteredProductsBySearch = contextProducts.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Filtrar por categoría (ahora se hace sobre los productos ya cargados por el contexto)
+  const filteredProductsByCategory = selectedCategory === 'all'
+    ? filteredProductsBySearch
+    : filteredProductsBySearch.filter(product => product.category === selectedCategory);
+
+
   // Ordenar productos
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
+  const sortedProducts = [...filteredProductsByCategory].sort((a, b) => {
     switch (sortBy) {
       case 'price-low':
         return a.price - b.price;
       case 'price-high':
         return b.price - a.price;
       case 'rating':
+        // Asegúrate de que product.rating y product.rating.rate existan
         return (b.rating?.rate || 0) - (a.rating?.rate || 0);
       case 'name':
       default:
@@ -98,12 +62,12 @@ const ProductList = ({ onAddToCart }) => {
     }
   });
 
-  if (loading) {
+  if (contextLoading) {
     return <LoadingSpinner message="Cargando productos..." />;
   }
 
-  if (error) {
-    return <ErrorMessage message={error} onRetry={handleRetry} />;
+  if (contextError) {
+    return <ErrorMessage message={contextError} onRetry={handleRetry} />;
   }
 
   return (
@@ -185,8 +149,8 @@ const ProductList = ({ onAddToCart }) => {
               <div className="product-footer">
                 <span className="product-price">${product.price.toFixed(2)}</span>
                 <div className="product-actions">
-                  <Link 
-                    to={`/products/${product.id}`} 
+                  <Link
+                    to={`/products/${product.id}`}
                     className="view-details-btn"
                   >
                     Ver Detalles
