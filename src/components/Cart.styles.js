@@ -220,6 +220,21 @@ export const CartTotalContainer = styled.div`
     text-align: center;
 `;
 
+export const SummaryRow = styled.div`
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+
+    &.total {
+        font-weight: bold;
+        font-size: 1.3em;
+        border-top: 1px solid #eee;
+        padding-top: 10px;
+        margin-top: 15px;
+    }
+`;
+
 export const TotalPrice = styled.h3`
     margin: 0 0 15px 0;
     color: #333;

@@ -90,17 +90,19 @@ export const ProductRating = styled.div`
 
 export const Stars = styled.div`
     display: flex;
-    gap: 2px;
+    align-items: center;
+    margin-bottom: 10px;
 `;
 
 export const Star = styled.span`
+   
+    color: ${props => (props.$filled ? '#ffc107' : '#e4e5e9')}; // Color oro para llenas, gris para vacías
     font-size: 1.2em;
-    opacity: 0.3;
-
-    &.filled {
-        opacity: 1;
-    }
+    margin-right: 2px;
+    display: flex; // Asegura que el icono de la estrella esté bien centrado si es un SVG, etc.
+    align-items: center;
 `;
+
 
 export const RatingText = styled.span`
     color: #666;

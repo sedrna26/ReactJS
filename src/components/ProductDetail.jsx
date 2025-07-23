@@ -1,3 +1,5 @@
+// src/components/ProductDetail.jsx
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { fetchProductById } from '../services/api';
@@ -17,7 +19,7 @@ import {
     ProductTitle,
     ProductRating,
     Stars,
-    Star,
+    Star, // Asegúrate de que Star esté importado
     RatingText,
     ProductPrice,
     ProductDescription,
@@ -46,161 +48,89 @@ const ProductDetail = ({ onAddToCart }) => {
     const [quantity, setQuantity] = useState(1);
 
     useEffect(() => {
-        const loadProduct = async () => {
+        const getProduct = async () => {
             try {
                 setLoading(true);
-                setError(null);
-
-                const productData = await fetchProductById(id);
-
-                const transformedProduct = {
-                    id: productData.id,
-                    name: productData.title,
-                    price: parseFloat(productData.price),
-                    image: productData.image,
-                    description: productData.description,
-                    category: productData.category,
-                    rating: productData.rating
-                };
-
-                setProduct(transformedProduct);
+                const data = await fetchProductById(id);
+                setProduct(data);
+                setLoading(false);
             } catch (err) {
-                setError(err.message);
-                toast.error(`Error al cargar el producto: ${err.message}`);
-            } finally {
+                setError('No se pudo cargar el producto. Inténtalo de nuevo.');
                 setLoading(false);
             }
         };
-
-        if (id) {
-            loadProduct();
-        }
+        getProduct();
     }, [id]);
 
-    const handleAddToCart = () => {
-        if (product) {
-            for (let i = 0; i < quantity; i++) {
-                onAddToCart(product);
-            }
-            toast.success(`${quantity} x ${product.name} agregado(s) al carrito!`);
+    const handleQuantityChange = (e) => {
+        const value = parseInt(e.target.value);
+        if (value >= 1 && value <= 10) {
+            setQuantity(value);
+        } else if (value < 1) {
+            setQuantity(1);
+        } else if (value > 10) {
+            setQuantity(10);
         }
     };
 
-    const handleQuantityChange = (e) => {
-        const newQuantity = parseInt(e.target.value);
-        if (newQuantity > 0) {
-            setQuantity(newQuantity);
+    const handleAddToCart = () => {
+        if (product && onAddToCart) {
+            onAddToCart(product, quantity);
+            toast.success(`${quantity} x ${product.name} añadido al carrito!`);
         }
     };
 
     if (loading) {
-        return <LoadingSpinner message="Cargando producto..." />;
+        return <LoadingSpinner message="Cargando detalles del producto..." />;
     }
 
     if (error) {
-        return (
-            <ProductDetailContainer>
-                <Helmet> {/* Helmet para la página de error */}
-                    <title>Error - Producto no encontrado</title>
-                    <meta name="description" content="Ha ocurrido un error al cargar el producto o el producto no fue encontrado." />
-                </Helmet>
-                <ErrorMessage
-                    message={error}
-                    onRetry={() => window.location.reload()}
-                />
-                <BackButtonContainer>
-                    <BackButton to="/products">
-                        <FaArrowLeft style={{ marginRight: '8px' }} /> Volver a productos
-                    </BackButton>
-                </BackButtonContainer>
-            </ProductDetailContainer>
-        );
+        return <ErrorMessage message={error} />;
     }
 
     if (!product) {
-        return (
-            <ProductDetailContainer>
-                <Helmet> {/* Helmet para el caso de producto no encontrado */}
-                    <title>Producto no encontrado - Mi Tienda</title>
-                    <meta name="description" content="El producto que buscas no existe o ha sido eliminado." />
-                </Helmet>
-                <ErrorMessage message="Producto no encontrado" />
-                <BackButtonContainer>
-                    <BackButton to="/products">
-                        <FaArrowLeft style={{ marginRight: '8px' }} /> Volver a productos
-                    </BackButton>
-                </BackButtonContainer>
-            </ProductDetailContainer>
-        );
+        return <ErrorMessage message="Producto no encontrado." />;
     }
 
     return (
-        <ProductDetailContainer className="fade-in">
-            <Helmet> {/* Helmet para la página de detalle del producto */}
-                <title>{product.name} - Mi Tienda Online</title>
-                <meta name="description" content={product.description?.substring(0, 160) + "..."} /> {/* Descripción corta para SEO */}
-                <meta name="keywords" content={`${product.name}, ${product.category}, ${product.name} precio, comprar ${product.name}`} />
-                <meta property="og:title" content={product.name} />
-                <meta property="og:description" content={product.description?.substring(0, 160) + "..."} />
-                <meta property="og:image" content={product.image} />
-                <meta property="og:url" content={`http://www.mitiendaonline.com/products/${product.id}`} /> {/* URL real del producto */}
-                <link rel="canonical" href={`http://www.mitiendaonline.com/products/${product.id}`} /> {/* URL canónica */}
+        <ProductDetailContainer>
+            <Helmet>
+                <title>{product ? `Detalle de ${product.name}` : 'Detalle del Producto'}</title>
+                <meta name="description" content={`Detalles de ${product.name}: ${product.description}`} />
+                <link rel="canonical" href={`http://www.mitiendaonline.com/products/${product.id}`} />
             </Helmet>
 
             <Breadcrumb>
-                <Link to="/products">Productos</Link>
-                <span> / </span>
-                <span className="current">{product.name}</span>
+                <Link to="/">Inicio</Link> &gt; <Link to="/products">Productos</Link> &gt; <span className="current">{product.name}</span>
             </Breadcrumb>
 
             <ProductDetailWrapper>
                 <ProductImageSection>
-                    <ProductDetailImage
-                        src={product.image}
-                        alt={product.name}
-                    />
+                    <ProductDetailImage src={product.image} alt={product.name} />
                 </ProductImageSection>
 
                 <ProductInfoSection>
-                    <ProductCategory>
-                        {product.category?.toUpperCase()}
-                    </ProductCategory>
-
+                    <ProductCategory>{product.category}</ProductCategory>
                     <ProductTitle>{product.name}</ProductTitle>
-
-                    {product.rating && (
-                        <ProductRating>
-                            <Stars>
-                                {Array.from({ length: 5 }, (_, i) => (
-                                    <Star
-                                        key={i}
-                                        className={i < Math.floor(product.rating.rate) ? 'filled' : ''}
-                                        aria-label={`${i + 1} estrellas`}
-                                    >
-                                        <FaStar />
-                                    </Star>
-                                ))}
-                            </Stars>
-                            <RatingText>
-                                {product.rating.rate} ({product.rating.count} reseñas)
-                            </RatingText>
-                        </ProductRating>
-                    )}
-
-                    <ProductPrice>
-                        ${product.price.toFixed(2)}
-                    </ProductPrice>
-
-                    <ProductDescription>
-                        {product.description}
-                    </ProductDescription>
+                    <ProductRating>
+                        <Stars>
+                            {[...Array(5)].map((_, i) => (
+                                <Star key={i} $filled={i < product.rating}> {/* CAMBIO CLAVE AQUÍ: Ahora es $filled */}
+                                    <FaStar />
+                                </Star>
+                            ))}
+                        </Stars>
+                        <RatingText>({product.reviews} reseñas)</RatingText>
+                    </ProductRating>
+                    <ProductPrice>${product.price ? parseFloat(product.price).toFixed(2) : 'N/A'}</ProductPrice>
+                    <ProductDescription>{product.description}</ProductDescription>
 
                     <PurchaseSection>
                         <QuantitySelector>
                             <label htmlFor="quantity">Cantidad:</label>
                             <QuantityInput
-                                id="quantity"
                                 type="number"
+                                id="quantity"
                                 min="1"
                                 max="10"
                                 value={quantity}

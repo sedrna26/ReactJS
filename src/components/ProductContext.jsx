@@ -1,6 +1,6 @@
 // src/components/ProductContext.jsx
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import * as api from '../services/api'; // Asegúrate de que 'api' esté importado
+import * as api from '../services/api';
 
 const ProductContext = createContext();
 
@@ -16,12 +16,10 @@ export const ProductProvider = ({ children }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    // NUEVO: Estado para las categorías
     const [categories, setCategories] = useState([]);
-    const [loadingCategories, setLoadingCategories] = useState(true); // Opcional: estado de carga para categorías
-    const [errorCategories, setErrorCategories] = useState(null); // Opcional: estado de error para categorías
+    const [loadingCategories, setLoadingCategories] = useState(true);
+    const [errorCategories, setErrorCategories] = useState(null);
 
-    // Función auxiliar para transformar el precio a número
     const transformProductPrice = (product) => {
         if (product && typeof product.price === 'string') {
             return { ...product, price: parseFloat(product.price) };
@@ -29,27 +27,32 @@ export const ProductProvider = ({ children }) => {
         return product;
     };
 
-    // Función para obtener todos los productos
     const fetchProducts = useCallback(async () => {
+        setLoading(true);
+        setError(null); // Limpiar errores anteriores
         try {
-            setLoading(true);
-            setError(null);
             const data = await api.fetchProducts();
             setProducts(data);
         } catch (err) {
-            setError(err.message);
+            console.error("Error fetching products:", err);
+            // Manejar errores específicos, como el 429
+            if (err.message.includes('429')) {
+                setError('Demasiadas solicitudes. Por favor, espera unos momentos e inténtalo de nuevo.');
+            } else {
+                setError('Error al cargar productos. Inténtalo de nuevo más tarde.');
+            }
+            setProducts([]); // Asegurarse de que products esté vacío en caso de error
         } finally {
-            setLoading(false);
+            setLoading(false); // Siempre desactiva loading al finalizar, sea éxito o error
         }
     }, []);
 
-    // NUEVO: Función para obtener todas las categorías
     const fetchAllCategories = useCallback(async () => {
         try {
             setLoadingCategories(true);
             setErrorCategories(null);
-            const data = await api.fetchCategories(); // Asegúrate de que api.fetchCategories() exista
-            setCategories(data); // `data` debería ser un array de categorías
+            const data = await api.fetchCategories();
+            setCategories(data);
         } catch (err) {
             setErrorCategories(err.message);
         } finally {
@@ -57,15 +60,11 @@ export const ProductProvider = ({ children }) => {
         }
     }, []);
 
-
-    // Cargar productos y categorías al iniciar el provider
     useEffect(() => {
         fetchProducts();
-        fetchAllCategories(); // NUEVO: Cargar categorías cuando el proveedor se monta
-    }, [fetchProducts, fetchAllCategories]); // Añade fetchAllCategories a las dependencias
+        fetchAllCategories();
+    }, [fetchProducts, fetchAllCategories]);
 
-
-    // ... (Mantén las funciones addProduct, updateProduct, deleteProduct sin cambios)
     const addProduct = async (productData) => {
         try {
             const productToSend = transformProductPrice(productData);
@@ -91,6 +90,7 @@ export const ProductProvider = ({ children }) => {
             return { success: false, error: err.message };
         }
     };
+
     const deleteProduct = async (productId) => {
         try {
             await api.deleteProduct(productId);
@@ -101,7 +101,6 @@ export const ProductProvider = ({ children }) => {
         }
     };
 
-
     const value = {
         products,
         loading,
@@ -110,7 +109,6 @@ export const ProductProvider = ({ children }) => {
         addProduct,
         updateProduct,
         deleteProduct,
-        // NUEVO: Expón las categorías y sus estados de carga/error
         categories,
         loadingCategories,
         errorCategories

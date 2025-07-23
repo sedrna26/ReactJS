@@ -1,3 +1,4 @@
+// src/components/ProductForm.jsx
 import React, { useState, useEffect } from 'react';
 import { useProducts } from './ProductContext';
 import { toast } from 'react-toastify';
@@ -14,12 +15,13 @@ import {
 } from './ProductForm.styles';
 
 const ProductForm = ({ onSubmit, initialData = null, onCancel }) => {
-    const { categories } = useProducts();
+    // Si bien "categories" se importa, no la usaremos directamente para el input de texto
+    // const { categories } = useProducts(); 
     const [formData, setFormData] = useState({
         name: '',
         price: '',
         description: '',
-        category: '',
+        category: '', // La categoría ahora puede ser cualquier texto
         image: ''
     });
     const [formErrors, setFormErrors] = useState({});
@@ -46,6 +48,7 @@ const ProductForm = ({ onSubmit, initialData = null, onCancel }) => {
         if (!formData.name.trim()) errors.name = 'El nombre es requerido.';
         if (!formData.price || isNaN(formData.price) || parseFloat(formData.price) <= 0) errors.price = 'El precio debe ser un número positivo.';
         if (!formData.description.trim()) errors.description = 'La descripción es requerida.';
+        // Aquí, la validación para la categoría cambia a simplemente verificar que no esté vacía
         if (!formData.category.trim()) errors.category = 'La categoría es requerida.';
         if (!formData.image.trim()) errors.image = 'La URL de la imagen es requerida.';
         else if (!/^https?:\/\/.+\.(jpg|jpeg|png|gif|svg)$/.test(formData.image)) errors.image = 'URL de imagen inválida.';
@@ -82,7 +85,7 @@ const ProductForm = ({ onSubmit, initialData = null, onCancel }) => {
                             value={formData.name}
                             onChange={handleChange}
                             placeholder="Nombre del producto"
-                            aria-required="true" // Indica que el campo es requerido
+                            aria-required="true"
                         />
                         {formErrors.name && <ErrorMessage>{formErrors.name}</ErrorMessage>}
                     </FormGroup>
@@ -117,22 +120,18 @@ const ProductForm = ({ onSubmit, initialData = null, onCancel }) => {
                         {formErrors.description && <ErrorMessage>{formErrors.description}</ErrorMessage>}
                     </FormGroup>
 
+                    {/* CAMBIO CLAVE AQUÍ: De select a input type="text" */}
                     <FormGroup>
                         <label htmlFor="category">Categoría:</label>
-                        <select
+                        <input
+                            type="text" // Cambiado de select a text
                             id="category"
                             name="category"
                             value={formData.category}
                             onChange={handleChange}
+                            placeholder="Ingresa la categoría (Ej: Electrónica, Ropa)"
                             aria-required="true"
-                        >
-                            <option value="">Selecciona una categoría</option>
-                            {categories.map((cat) => (
-                                <option key={cat} value={cat}>
-                                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                                </option>
-                            ))}
-                        </select>
+                        />
                         {formErrors.category && <ErrorMessage>{formErrors.category}</ErrorMessage>}
                     </FormGroup>
 

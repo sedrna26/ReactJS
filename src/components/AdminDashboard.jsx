@@ -4,9 +4,8 @@ import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
 import ProductForm from './ProductForm';
 import ConfirmationModal from './ConfirmationModal';
-import { Helmet } from 'react-helmet-async'; // Importa Helmet
+import { Helmet } from 'react-helmet-async';
 
-// Importa los componentes estilizados
 import {
   AdminDashboardContainer,
   AdminHeader,
@@ -22,7 +21,6 @@ import {
   ErrorContainer
 } from './AdminDashboard.styles';
 
-// Importa los iconos que podrías necesitar
 import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 
 const AdminDashboard = () => {
@@ -33,12 +31,10 @@ const AdminDashboard = () => {
   const [deletingProduct, setDeletingProduct] = useState(null);
   const [notification, setNotification] = useState('');
 
-  // UseEffect para cargar productos inicialmente o cuando cambie el error (para reintentar)
+
   useEffect(() => {
-    if (!products.length && !loading && !error) {
-      fetchProducts();
-    }
-  }, [products.length, loading, error, fetchProducts]);
+
+  }, [error, loading]); // Solo reaccionar a cambios en error o loading
 
   const showNotification = (message) => {
     setNotification(message);
@@ -75,12 +71,12 @@ const AdminDashboard = () => {
     if (deletingProduct) {
       const result = await deleteProduct(deletingProduct.id);
       showNotification(result.success ? '🗑️ Producto eliminado con éxito' : `❌ Error: ${result.error}`);
-      setDeletingProduct(null); // Cerrar modal
+      setDeletingProduct(null);
     }
   };
 
   const handleRetryFetch = () => {
-    fetchProducts();
+    fetchProducts(); // Llama a la función del contexto para reintentar la carga
   };
 
   if (loading) {
@@ -92,7 +88,7 @@ const AdminDashboard = () => {
       <Helmet>
         <title>Panel de Administración - Mi Tienda Online</title>
         <meta name="description" content="Gestiona productos de tu tienda online: añade, edita y elimina productos." />
-        <link rel="canonical" href="http://www.mitiendaonline.com/admin" /> {/* Reemplaza con tu URL real */}
+        <link rel="canonical" href="http://www.mitiendaonline.com/admin" />
       </Helmet>
 
       <AdminHeader>
@@ -106,15 +102,13 @@ const AdminDashboard = () => {
 
       {error ? (
         <ErrorContainer>
-          <ErrorMessage message={`Error al cargar productos: ${error}`} onRetry={handleRetryFetch} />
+          <ErrorMessage message={error} onRetry={handleRetryFetch} />
         </ErrorContainer>
       ) : products.length === 0 ? (
         <NoProductsMessage>
           <h3>No hay productos disponibles</h3>
           <p>¡Es un buen momento para añadir el primero!</p>
-          <AddProductButton onClick={() => handleOpenForm()}>
-            <FaPlus /> Añadir Nuevo Producto
-          </AddProductButton>
+
         </NoProductsMessage>
       ) : (
         <ProductTableContainer>
