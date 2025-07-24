@@ -11,6 +11,17 @@ const fadeIn = keyframes`
   }
 `;
 
+const slideIn = keyframes`
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+`;
+
 // Mixin para estilos de botones
 const buttonStyles = css`
   border: none;
@@ -107,6 +118,26 @@ export const StyledSelect = styled.select`
   }
 `;
 
+export const ItemsPerPageSelector = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  label {
+    font-size: 0.9em;
+    color: #666;
+    white-space: nowrap;
+  }
+
+  select {
+    min-width: 120px;
+  }
+
+  @media (max-width: 768px) {
+    justify-content: center;
+  }
+`;
+
 export const NoProductsMessage = styled.div`
   text-align: center;
   padding: 60px 20px;
@@ -118,21 +149,41 @@ export const NoProductsMessage = styled.div`
   }
 `;
 
+export const PaginationInfo = styled.div`
+  text-align: center;
+  margin-bottom: 20px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  color: #666;
+  font-size: 0.9em;
+  animation: ${slideIn} 0.3s ease-out;
+
+  span {
+    color: #667eea;
+    font-weight: bold;
+  }
+`;
+
 export const ProductsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  animation: ${fadeIn} 0.5s ease-out;
+  padding: 0 10px;
 
   @media (max-width: 768px) {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 15px;
+    padding: 0 5px;
   }
 
   @media (max-width: 480px) {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 15px;
+    padding: 0;
   }
 `;
 
@@ -146,7 +197,10 @@ export const ProductCard = styled.div`
   position: relative;
   display: flex;
   flex-direction: column;
-  animation: ${fadeIn} 0.5s ease-out; /* Animación de entrada */
+  animation: ${fadeIn} 0.5s ease-out;
+  width: 100%;
+  min-height: 450px;
+  max-width: 100%;
 
   &:hover {
     transform: translateY(-5px);
@@ -163,8 +217,9 @@ export const ProductLink = styled(Link)`
 
 export const ProductImageContainer = styled.div`
   position: relative;
-  height: 250px;
+  height: 200px;
   overflow: hidden;
+  flex-shrink: 0;
 `;
 
 export const ProductImage = styled.img`
@@ -191,8 +246,11 @@ export const ProductRating = styled.div`
 `;
 
 export const ProductInfo = styled.div`
-  padding: 18px;
+  padding: 15px;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 120px;
 `;
 
 export const ProductCategoryBadge = styled.span`
@@ -218,22 +276,30 @@ export const ProductName = styled.h3`
 export const ProductDescription = styled.p`
   color: #666;
   font-size: 0.9em;
-  margin: 0 0 18px 0;
-  line-height: 1.5;
+  margin: 0 0 15px 0;
+  line-height: 1.4;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 `;
 
 export const ProductFooter = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 18px;
+  padding: 15px;
   border-top: 1px solid #eee;
   background: #f8f9fa;
+  margin-top: auto;
+  min-height: 80px;
 
   @media (max-width: 768px) {
     flex-direction: column;
     gap: 10px;
     align-items: stretch;
+    min-height: 100px;
   }
 `;
 
@@ -281,5 +347,99 @@ export const AddToCartButton = styled.button`
   &:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
+  }
+`;
+
+// Estilos de paginación
+export const PaginationContainer = styled.div`
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+  animation: ${slideIn} 0.4s ease-out;
+`;
+
+export const PaginationControls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  padding: 15px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  flex-wrap: wrap;
+  justify-content: center;
+
+  @media (max-width: 768px) {
+    gap: 5px;
+    padding: 10px 15px;
+  }
+`;
+
+export const PaginationButton = styled.button`
+  background: ${props => props.disabled ? '#f8f9fa' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'};
+  color: ${props => props.disabled ? '#6c757d' : 'white'};
+  border: 1px solid ${props => props.disabled ? '#ddd' : 'transparent'};
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  font-weight: bold;
+  font-size: 0.9em;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px 12px;
+    font-size: 0.8em;
+  }
+`;
+
+export const PaginationNumbers = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 10px;
+
+  @media (max-width: 480px) {
+    margin: 0 5px;
+    gap: 3px;
+  }
+`;
+
+export const PaginationNumber = styled.button`
+  background: ${props => props.$active ? '#667eea' : 'transparent'};
+  color: ${props => props.$active ? 'white' : '#667eea'};
+  border: 2px solid ${props => props.$active ? '#667eea' : '#ddd'};
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: ${props => props.$active ? '#5a67d8' : '#667eea'};
+    color: white;
+    border-color: ${props => props.$active ? '#5a67d8' : '#667eea'};
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+
+  @media (max-width: 480px) {
+    width: 35px;
+    height: 35px;
+    font-size: 0.8em;
   }
 `;

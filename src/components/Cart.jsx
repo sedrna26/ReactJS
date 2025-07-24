@@ -29,9 +29,14 @@ import { FaPlus, FaMinus, FaTrash } from 'react-icons/fa';
 
 // MODIFICADO: Recibe onCheckout en lugar de onClearCart
 const Cart = ({ cartItems, onUpdateQuantity, onRemoveFromCart, onCheckout }) => {
-    const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const subtotal = cartItems.reduce((sum, item) => {
+        const itemPrice = parseFloat((parseFloat(item.price) || 0).toFixed(2));
+        const quantity = parseInt(item.quantity) || 0;
+        return sum + (itemPrice * quantity);
+    }, 0);
+
     const shipping = subtotal > 0 ? 5.00 : 0;
-    const total = subtotal + shipping;
+    const total = parseFloat((subtotal + shipping).toFixed(2));
 
     const handleCheckout = () => {
         if (cartItems.length > 0) {
@@ -94,7 +99,18 @@ const Cart = ({ cartItems, onUpdateQuantity, onRemoveFromCart, onCheckout }) => 
                     </CartItemsContainer>
 
                     <CartTotalContainer>
-                        <TotalPrice>Total: ${total.toFixed(2)}</TotalPrice>
+                        <div style={{ marginBottom: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                <span>Subtotal:</span>
+                                <span>${subtotal.toFixed(2)}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                <span>Envío:</span>
+                                <span>${shipping.toFixed(2)}</span>
+                            </div>
+                            <hr />
+                            <TotalPrice>Total: ${total.toFixed(2)}</TotalPrice>
+                        </div>
                         <CartActions>
                             <ContinueShoppingButton to="/products">
                                 Continuar Comprando

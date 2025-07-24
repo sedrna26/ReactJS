@@ -6,6 +6,9 @@ import ErrorMessage from './ErrorMessage';
 import { useProducts } from './ProductContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Helmet } from 'react-helmet-async';
+import { useDebounce } from '../hooks/useDebounce'; //
+import OptimizedImage from './OptimizedImage'; // Asumo que tienes este componente para lazy-loading de imágenes
+import { LIMITS } from '../utils/constants'; //
 
 import {
   ProductListContainer,
@@ -31,24 +34,34 @@ import {
   ProductActions,
   ViewDetailsButton,
   AddToCartButton,
-} from './ProductList.styles'; // Asegúrate de importar todos los componentes estilizados
+  // Nuevos componentes para paginación
+  PaginationContainer,
+  PaginationInfo,
+  PaginationControls,
+  PaginationButton,
+  PaginationNumbers,
+  PaginationNumber,
+  ItemsPerPageSelector
+} from './ProductList.styles';
 
 const ProductList = ({ onAddToCart }) => {
+
   const { products: contextProducts, loading: contextLoading, error: contextError, fetchProducts: refetchAllProducts } = useProducts();
 
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  // Usamos el hook useDebounce con el valor de LIMITS.SEARCH_DEBOUNCE_MS para el retardo
+  const debouncedSearchTerm = useDebounce(searchTerm, LIMITS.SEARCH_DEBOUNCE_MS); //
   const [sortBy, setSortBy] = useState('name');
+
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(9); // 9 productos por página por defecto
 
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        // En lugar de fetchCategories(), usa las categorías del contexto si ya las tienes disponibles
-        // Si ProductContext ya carga las categorías, puedes obtenerlas de allí:
-        // const { categories: contextCategories } = useProducts();
-        // setCategories(contextCategories);
-        // O si quieres mantener la carga separada, asegúrate de que api.fetchCategories funcione:
         const categoriesData = await fetchCategories();
         setCategories(categoriesData);
       } catch (err) {
@@ -58,14 +71,20 @@ const ProductList = ({ onAddToCart }) => {
     loadCategories();
   }, []);
 
+  // Reset página cuando cambian los filtros
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, searchTerm, sortBy, itemsPerPage]);
+
   const handleRetry = () => {
     refetchAllProducts();
   };
 
   const filteredProducts = contextProducts.filter(product => {
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase());
+    // Aquí usamos debouncedSearchTerm para el filtrado, no searchTerm directamente
+    const matchesSearch = product.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      product.description.toLowerCase().includes(debouncedSearchTerm.toLowerCase()); // También para descripción
     return matchesCategory && matchesSearch;
   });
 
@@ -82,17 +101,77 @@ const ProductList = ({ onAddToCart }) => {
     return 0;
   });
 
+  // Cálculos de paginación
+  const totalProducts = sortedProducts.length;
+  const totalPages = Math.ceil(totalProducts / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentProducts = sortedProducts.slice(startIndex, endIndex);
+
+  // Funciones de paginación
+  const goToPage = (page) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  // Generar números de página para mostrar
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
+
   return (
-    <ProductListContainer> {/* Usar componente estilizado */}
+    <ProductListContainer>
       <Helmet>
         <title>Lista de Productos - E-commerce</title>
         <meta name="description" content="Explora nuestra amplia selección de productos y encuentra lo que necesitas." />
       </Helmet>
 
-      <ProductListHeader> {/* Usar componente estilizado */}
+      <ProductListHeader>
         <h2>Nuestros Productos</h2>
-        <FiltersContainer> {/* Usar componente estilizado */}
-          <SearchContainer> {/* Usar componente estilizado */}
+        <FiltersContainer>
+          <SearchContainer>
             <SearchInput
               type="text"
               placeholder="Buscar productos..."
@@ -100,8 +179,8 @@ const ProductList = ({ onAddToCart }) => {
               onChange={(e) => setSearchTerm(e.target.value)}
               aria-label="Buscar productos"
             />
-            <SearchIcon> {/* Usar componente estilizado */}
-              <i className="fas fa-search"></i> {/* Asegúrate de que Font Awesome esté configurado si usas esta clase */}
+            <SearchIcon>
+              <i className="fas fa-search"></i>
             </SearchIcon>
           </SearchContainer>
 
@@ -125,6 +204,21 @@ const ProductList = ({ onAddToCart }) => {
             <option value="priceAsc">Precio: Menor a Mayor</option>
             <option value="priceDesc">Precio: Mayor a Menor</option>
           </StyledSelect>
+
+          <ItemsPerPageSelector>
+            <label htmlFor="itemsPerPage">Mostrar:</label>
+            <StyledSelect
+              id="itemsPerPage"
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              aria-label="Productos por página"
+            >
+              <option value={6}>6 por página</option>
+              <option value={9}>9 por página</option>
+              <option value={12}>12 por página</option>
+              <option value={18}>18 por página</option>
+            </StyledSelect>
+          </ItemsPerPageSelector>
         </FiltersContainer>
       </ProductListHeader>
 
@@ -132,32 +226,45 @@ const ProductList = ({ onAddToCart }) => {
       {contextError && <ErrorMessage message={contextError} onRetry={handleRetry} />}
 
       {!contextLoading && !contextError && sortedProducts.length === 0 && (
-        <NoProductsMessage> {/* Usar componente estilizado */}
+        <NoProductsMessage>
           <h3>No se encontraron productos.</h3>
           <p>Intenta ajustar tus filtros de búsqueda o categoría.</p>
         </NoProductsMessage>
       )}
 
       {!contextLoading && !contextError && sortedProducts.length > 0 && (
-        <ProductsGrid> {/* Usar componente estilizado */}
-          {sortedProducts.map((product) => (
-            <div className="col-md-4 mb-4" key={product.id}> {/* Clase de Bootstrap */}
-              <ProductCard> {/* Usar componente estilizado */}
+        <>
+          {/* Información de paginación */}
+          <PaginationInfo>
+            Mostrando {startIndex + 1}-{Math.min(endIndex, totalProducts)} de {totalProducts} productos
+            {debouncedSearchTerm && ( // Mostrar el término debounced
+              <span> (filtrados por: "{debouncedSearchTerm}")</span>
+            )}
+            {selectedCategory !== 'all' && (
+              <span> en categoría "{selectedCategory}"</span>
+            )}
+          </PaginationInfo>
+
+          {/* Grid de productos */}
+          <ProductsGrid>
+            {currentProducts.map((product) => (
+              <ProductCard key={product.id}>
                 <ProductLink to={`/products/${product.id}`}>
-                  <ProductImageContainer> {/* Usar componente estilizado */}
-                    <ProductImage
+                  <ProductImageContainer>
+                    
+                    <OptimizedImage //
                       src={product.image}
                       alt={product.name}
-                      onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-image.jpg'; }}
+                      
                     />
                     {product.rating && (
                       <ProductRating>{product.rating.toFixed(1)} ★</ProductRating>
                     )}
                   </ProductImageContainer>
-                  <ProductInfo> {/* Usar componente estilizado */}
-                    <ProductCategoryBadge>{product.category}</ProductCategoryBadge> {/* Usar componente estilizado */}
-                    <ProductName>{product.name}</ProductName> {/* Usar componente estilizado */}
-                    <ProductDescription> {/* Usar componente estilizado */}
+                  <ProductInfo>
+                    <ProductCategoryBadge>{product.category}</ProductCategoryBadge>
+                    <ProductName>{product.name}</ProductName>
+                    <ProductDescription>
                       {product.description.length > 100
                         ? `${product.description.substring(0, 100)}...`
                         : product.description
@@ -165,9 +272,9 @@ const ProductList = ({ onAddToCart }) => {
                     </ProductDescription>
                   </ProductInfo>
                 </ProductLink>
-                <ProductFooter> {/* Usar componente estilizado */}
-                  <ProductPrice>${product.price.toFixed(2)}</ProductPrice> {/* Usar componente estilizado */}
-                  <ProductActions> {/* Usar componente estilizado */}
+                <ProductFooter>
+                  <ProductPrice>${product.price.toFixed(2)}</ProductPrice>
+                  <ProductActions>
                     <ViewDetailsButton
                       to={`/products/${product.id}`}
                       aria-label={`Ver detalles de ${product.name}`}
@@ -187,9 +294,51 @@ const ProductList = ({ onAddToCart }) => {
                   </ProductActions>
                 </ProductFooter>
               </ProductCard>
-            </div>
-          ))}
-        </ProductsGrid>
+            ))}
+          </ProductsGrid>
+
+          {/* Controles de paginación */}
+          {totalPages > 1 && (
+            <PaginationContainer>
+              <PaginationControls>
+                <PaginationButton
+                  onClick={goToPrevPage}
+                  disabled={currentPage === 1}
+                  aria-label="Página anterior"
+                >
+                  ← Anterior
+                </PaginationButton>
+
+                <PaginationNumbers>
+                  {getPageNumbers().map((page, index) => (
+                    <React.Fragment key={index}>
+                      {page === '...' ? (
+                        <span style={{ padding: '0 5px', color: '#666' }}>...</span>
+                      ) : (
+                        <PaginationNumber
+                          onClick={() => goToPage(page)}
+                          $active={page === currentPage}
+                          aria-label={`Ir a la página ${page}`}
+                          aria-current={page === currentPage ? 'page' : undefined}
+                        >
+                          {page}
+                        </PaginationNumber>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </PaginationNumbers>
+
+                <PaginationButton
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages}
+                  aria-label="Página siguiente"
+                >
+                  Siguiente →
+                </PaginationButton>
+              </PaginationControls>
+            </PaginationContainer>
+          )}
+        </>
       )}
     </ProductListContainer>
   );

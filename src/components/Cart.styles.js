@@ -213,32 +213,17 @@ export const RemoveButton = styled.button`
 `;
 
 export const CartTotalContainer = styled.div`
-    background: white;
-    padding: 20px;
+    background-color: #f8f9fa;
+    padding: 1.5rem;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    text-align: center;
+    margin-top: 1.5rem;
 `;
 
-export const SummaryRow = styled.div`
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    font-size: 1.1em;
-
-    &.total {
-        font-weight: bold;
-        font-size: 1.3em;
-        border-top: 1px solid #eee;
-        padding-top: 10px;
-        margin-top: 15px;
-    }
-`;
-
-export const TotalPrice = styled.h3`
-    margin: 0 0 15px 0;
-    color: #333;
-    font-size: 1.5em;
+export const TotalPrice = styled.div`
+    font-size: 1.25rem;
+    font-weight: bold;
+    text-align: right;
+    margin: 0.5rem 0;
 `;
 
 export const CartActions = styled.div`
