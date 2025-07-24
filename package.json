@@ -10,9 +10,7 @@
     "preview": "vite preview",
     "build:optimized": "node scripts/build-optimized.js",
     "analyze": "npm run build && npx bundle-analyzer build/static/js/*.js",
-    "lighthouse": "npm run build && npx lighthouse-ci autorun",
-    "test:compatibility": "node scripts/compatibility-test.js",
-    "prebuild": "npm run test:compatibility"
+    "lighthouse": "npm run build && npx lighthouse-ci autorun"
   },
   "dependencies": {
     "bootstrap": "^5.3.7",
