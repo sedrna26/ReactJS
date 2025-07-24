@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import { toast } from 'react-toastify';
 import { Helmet } from 'react-helmet-async';
-
+import styled from 'styled-components';
 
 import {
   LoginContainer,
@@ -17,6 +17,28 @@ import {
   ErrorMessageDisplay
 } from './Login.styles';
 import { FaLock } from 'react-icons/fa';
+
+const TestAccountsContainer = styled.div`
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+  text-align: center;
+`;
+
+const TestAccountButton = styled.button`
+  background-color: ${props => props.$isAdmin ? '#dc3545' : '#28a745'};
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  margin: 0.5rem;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -77,12 +99,31 @@ const Login = () => {
     }
   };
 
+  const handleTestAccount = async (isAdmin) => {
+    setLoading(true);
+    const testCredentials = isAdmin
+      ? { email: 'admin@tienda.com', password: 'admin123' }
+      : { email: 'user@tienda.com', password: 'user123' };
+
+    try {
+      const result = await login(testCredentials.email, testCredentials.password);
+      if (result.success) {
+        toast.success(`¡Inicio de sesión exitoso como ${isAdmin ? 'Administrador' : 'Usuario'}!`);
+        navigate('/products');
+      }
+    } catch (err) {
+      toast.error('Error al iniciar sesión con cuenta de prueba');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <LoginContainer>
       <Helmet>
         <title>Iniciar Sesión - Mi Tienda Online</title>
         <meta name="description" content="Inicia sesión en tu cuenta de Mi Tienda Online para acceder a tus pedidos y beneficios exclusivos." />
-        <link rel="canonical" href="http://www.mitiendaonline.com/login" /> {/* Reemplaza con tu URL real */}
+        <link rel="canonical" href="https://reactjs-hr.netlify.app/login" />
       </Helmet>
 
       <LoginCard>
@@ -136,6 +177,26 @@ const Login = () => {
             ¿No tienes cuenta? <RegisterLink to="/register">Regístrate aquí</RegisterLink>
           </p>
         </LoginFooter>
+
+        <TestAccountsContainer>
+          <p style={{ marginBottom: '1rem', color: '#666' }}>Cuentas de prueba:</p>
+          <TestAccountButton
+            onClick={() => handleTestAccount(true)}
+            disabled={loading}
+            $isAdmin={true}
+            aria-label="Iniciar sesión como administrador"
+          >
+            Ingresar como Admin
+          </TestAccountButton>
+          <TestAccountButton
+            onClick={() => handleTestAccount(false)}
+            disabled={loading}
+            $isAdmin={false}
+            aria-label="Iniciar sesión como usuario"
+          >
+            Ingresar como Usuario
+          </TestAccountButton>
+        </TestAccountsContainer>
       </LoginCard>
     </LoginContainer>
   );

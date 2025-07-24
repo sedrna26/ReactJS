@@ -1,4 +1,3 @@
-// src/App.jsx
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { useState, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';

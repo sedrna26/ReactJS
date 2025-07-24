@@ -88,7 +88,7 @@ const AdminDashboard = () => {
       <Helmet>
         <title>Panel de Administración - Mi Tienda Online</title>
         <meta name="description" content="Gestiona productos de tu tienda online: añade, edita y elimina productos." />
-        <link rel="canonical" href="http://www.mitiendaonline.com/admin" />
+        <link rel="canonical" href="https://688180f239b9218b2eb47cc0--reactjs-hr.netlify.app/admin" />
       </Helmet>
 
       <AdminHeader>

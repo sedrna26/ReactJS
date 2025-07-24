@@ -52,7 +52,7 @@ const Cart = ({ cartItems, onUpdateQuantity, onRemoveFromCart, onCheckout }) => 
             <Helmet>
                 <title>{cartItems.length > 0 ? `Tu Carrito (${cartItems.length} items)` : 'Carrito de Compras'}</title>
                 <meta name="description" content="Revisa los productos en tu carrito de compras y procede al pago." />
-                <link rel="canonical" href="http://www.mitiendaonline.com/cart" />
+                <link rel="canonical" href="https://reactjs-hr.netlify.app/cart" />
             </Helmet>
 
             <CartTitle>Tu Carrito de Compras</CartTitle>

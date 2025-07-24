@@ -97,7 +97,7 @@ const ProductDetail = ({ onAddToCart }) => {
             <Helmet>
                 <title>{product ? `Detalle de ${product.name}` : 'Detalle del Producto'}</title>
                 <meta name="description" content={`Detalles de ${product.name}: ${product.description}`} />
-                <link rel="canonical" href={`http://www.mitiendaonline.com/products/${product.id}`} />
+                <link rel="canonical" href={`https://reactjs-hr.netlify.app/products/${product.id}`} />
             </Helmet>
 
             <Breadcrumb>

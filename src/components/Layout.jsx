@@ -29,7 +29,7 @@ const Layout = ({ children, cartItemsCount }) => {
                 <title>Mi Tienda Online - Inicio</title>
                 <meta name="description" content="Tu destino para las mejores compras online. Descubre productos de alta calidad y ofertas increíbles." />
                 <meta name="keywords" content="tienda online, e-commerce, compras, productos, mejor precio" />
-                <link rel="canonical" href="http://www.mitiendaonline.com/" /> {/* Reemplaza con tu URL real */}
+                <link rel="canonical" href="https://reactjs-hr.netlify.app/" />
             </Helmet>
 
             <Header>

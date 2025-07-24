@@ -96,7 +96,7 @@ const Register = () => {
       <Helmet>
         <title>Registrarse - Mi Tienda Online</title>
         <meta name="description" content="Crea una cuenta en Mi Tienda Online para disfrutar de una mejor experiencia de compra y acceder a funciones exclusivas." />
-        <link rel="canonical" href="http://www.mitiendaonline.com/register" />
+        <link rel="canonical" href="https://reactjs-hr.netlify.app/register" />
       </Helmet>
 
       <LoginCard>

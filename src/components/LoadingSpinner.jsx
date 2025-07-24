@@ -8,7 +8,7 @@ import {
 
 const LoadingSpinner = ({ message = "Cargando..." }) => {
     return (
-        <LoadingContainer aria-live="polite" aria-busy="true"> {/* Atributos ARIA para accesibilidad */}
+        <LoadingContainer aria-live="polite" aria-busy="true">
             <SpinnerWrapper>
                 <Spinner />
                 <LoadingMessage>{message}</LoadingMessage>
